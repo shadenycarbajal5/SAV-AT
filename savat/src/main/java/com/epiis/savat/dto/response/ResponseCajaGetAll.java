@@ -17,5 +17,15 @@ public class ResponseCajaGetAll extends ResponseGeneric {
         public BigDecimal montoInicial;
         public BigDecimal montoFinal;
         public Boolean abierta;
+
+        public Item(Integer idCaja, LocalDateTime fechaApertura, LocalDateTime fechaCierre,
+                     BigDecimal montoInicial, BigDecimal montoFinal) {
+            this.idCaja = idCaja;
+            this.fechaApertura = fechaApertura;
+            this.fechaCierre = fechaCierre;
+            this.montoInicial = montoInicial;
+            this.montoFinal = montoFinal;
+            this.abierta = fechaCierre == null;
+        }
     }
 }
