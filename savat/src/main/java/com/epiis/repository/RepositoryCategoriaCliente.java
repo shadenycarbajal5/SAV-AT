@@ -1,5 +1,10 @@
-package com.epiis.repository;
+package com.epiis.savat.repository;
 
-public class RepositoryCategoriaCliente {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+import com.epiis.savat.entity.EntityCategoriaCliente;
+
+@Repository
+public interface RepositoryCategoriaCliente extends JpaRepository<EntityCategoriaCliente, Integer> {
 }
