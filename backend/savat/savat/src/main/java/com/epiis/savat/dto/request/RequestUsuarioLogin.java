@@ -1,5 +1,5 @@
 package com.epiis.savat.dto.request;
 
-public class LoginRequest {
+public class RequestUsuarioLogin {
     
 }
