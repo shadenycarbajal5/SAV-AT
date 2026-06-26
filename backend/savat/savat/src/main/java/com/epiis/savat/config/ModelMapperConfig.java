@@ -1,5 +1,14 @@
 package com.epiis.savat.config;
 
-public class ModelMapperConfig {
-    
+import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class ModelMapperConfig { // <- Cambiado aquí
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
 }
