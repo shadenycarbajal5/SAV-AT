@@ -1,0 +1,141 @@
+:host {
+    --blue-primary: #1a5fd4;
+    --white: #ffffff;
+    --gray-50: #f8faff;
+    --gray-100: #e8edf8;
+    --gray-400: #8099c4;
+    --text-dark: #0a1628;
+    --text-mid: #2d3d5a;
+    --text-light: #5e73a0;
+    --green: #2dc653;
+    --red: #e63946;
+    --radius-md: 12px;
+    --shadow-md: 0 8px 24px rgba(26,95,212,0.12);
+    display: block;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+/* ── Cabecera ──────────────────────────────────────────────── */
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.page-head-left h1 { font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 700; color: var(--text-dark); margin: 0; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin: 2px 0 0; }
+
+/* ── KPIs ──────────────────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius-md); padding: 18px 20px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-md); }
+.kpi-icon { width: 44px; height: 44px; border-radius: 10px; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-icon.blue  { background: #dbeafe; }
+.kpi-icon.green { background: #dcfce7; }
+.kpi-icon.gold  { background: #fef9c3; }
+.kpi-icon.red   { background: #fee2e2; }
+.kpi-label { font-size: 12px; color: var(--text-light); margin-bottom: 2px; }
+.kpi-value { font-size: 22px; font-weight: 700; color: var(--text-dark); }
+
+/* ── Toolbar ───────────────────────────────────────────────── */
+.toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.search-input { width: 300px; }
+.select-filter { min-width: 160px; }
+.total-label { font-size: 13px; color: var(--text-light); margin-left: auto; }
+
+/* ── States ────────────────────────────────────────────────── */
+.state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: 40vh; color: var(--text-light); font-size: 14px; }
+.empty-icon { font-size: 48px; }
+.spinner { width: 30px; height: 30px; border: 3px solid var(--gray-100); border-top-color: var(--blue-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Tabla historial ───────────────────────────────────────── */
+.table-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-md); }
+.td-id { font-size: 13px; color: var(--text-light); font-weight: 600; }
+.td-cliente, .td-vendedor { font-size: 13px; }
+.td-monto  { font-weight: 600; color: var(--text-dark); }
+.td-total  { font-weight: 700; color: var(--blue-primary); font-size: 15px; }
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+.badge-red { background: rgba(230,57,70,0.10); color: var(--red); }
+.text-muted { color: var(--text-light); }
+.empty-row { text-align: center; padding: 32px; color: var(--text-light); font-size: 14px; }
+
+/* ── Diálogo venta ─────────────────────────────────────────── */
+.venta-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 20px;
+    min-height: 420px;
+}
+
+.section-title { font-size: 13px; font-weight: 700; color: var(--text-mid); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── Agregar producto ──────────────────────────────────────── */
+.add-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 14px; }
+.add-field { display: flex; flex-direction: column; gap: 5px; }
+.add-field label { font-size: 12px; font-weight: 600; color: var(--text-mid); }
+.prod-field { flex: 1 1 0; }
+.qty-field  { flex: 0 0 96px; }
+.add-btn    { align-self: flex-end; }
+.w-full     { width: 100%; }
+.req        { color: var(--red); }
+
+.prod-option { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.prod-option span:first-child { flex: 1; }
+.prod-price { font-weight: 700; color: var(--blue-primary); font-size: 12px; }
+.prod-stock { font-size: 11px; color: var(--text-light); background: var(--gray-100); padding: 1px 6px; border-radius: 4px; }
+
+/* ── Carrito ───────────────────────────────────────────────── */
+.cart-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 0; color: var(--text-light); font-size: 13px; }
+.cart-empty span { font-size: 32px; }
+
+.cart-table-wrap { overflow-x: auto; border: 1px solid var(--gray-100); border-radius: 8px; }
+.cart-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cart-table thead tr { background: var(--gray-50); }
+.cart-table th { padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--gray-100); }
+.cart-table td { padding: 8px 10px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+.cart-table tr:last-child td { border-bottom: none; }
+.col-c { text-align: center; }
+.td-prod-name { font-weight: 500; color: var(--text-dark); }
+.td-price { color: var(--text-mid); }
+.td-sub { font-weight: 700; color: var(--text-dark); }
+.qty-inline { width: 100px; }
+
+/* ── Checkout ──────────────────────────────────────────────── */
+.col-checkout { display: flex; flex-direction: column; gap: 0; border-left: 1px solid var(--gray-100); padding-left: 20px; }
+.checkout-form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--text-mid); }
+
+/* ── Resumen ───────────────────────────────────────────────── */
+.resumen { margin: 12px 0; display: flex; flex-direction: column; gap: 6px; }
+.resumen-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-mid); }
+.text-red { color: var(--red); }
+.total-row { font-size: 17px; font-weight: 800; color: var(--text-dark); margin-top: 4px; padding-top: 8px; border-top: 2px solid var(--gray-100); }
+.confirm-btn { margin-top: 4px; width: 100%; }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } .search-input { width: 100%; } }
+
+/* Dialog responsive — apila columnas en pantalla pequeña */
+@media (max-width: 680px) {
+    .venta-layout {
+        grid-template-columns: 1fr;
+    }
+    .col-checkout {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid var(--gray-100);
+        padding-top: 16px;
+    }
+    .add-row {
+        flex-wrap: wrap;
+    }
+    .qty-field { flex: 0 0 100%; }
+    .add-btn   { width: 100%; justify-content: center; }
+}
+
+/* Dialog: limita altura y activa scroll en el contenido */
+:host ::ng-deep .venta-dialog .p-dialog-content {
+    max-height: 72vh;
+    overflow-y: auto;
+    padding-bottom: 8px;
+}
+:host ::ng-deep .venta-dialog {
+    max-width: 95vw;
+}

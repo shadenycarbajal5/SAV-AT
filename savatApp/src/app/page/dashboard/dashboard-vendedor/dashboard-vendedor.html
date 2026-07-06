@@ -1,0 +1,78 @@
+<div class="page-head">
+	<h1>Dashboard</h1>
+	<p class="breadcrumb">SAV-AT Ventas / Dashboard</p>
+</div>
+
+@if (loading()) {
+	<div class="state-box">
+		<span class="spinner"></span>
+		<p>Cargando información de ventas...</p>
+	</div>
+} @else if (error()) {
+	<div class="state-box error">
+		<span>⚠️</span>
+		<p>{{ error() }}</p>
+	</div>
+} @else if (data()) {
+
+	<div class="kpi-grid">
+		<div class="kpi-card">
+			<div class="kpi-icon green">💰</div>
+			<div>
+				<div class="kpi-label">Ventas del Día</div>
+				<div class="kpi-value">S/ {{ data()!.montoVentasHoy | number:'1.0-2' }}</div>
+				<div class="kpi-delta up">{{ data()!.ventasHoy }} ventas hoy</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon blue">🛒</div>
+			<div>
+				<div class="kpi-label">Mis Ventas del Mes</div>
+				<div class="kpi-value">{{ data()!.misVentasDelMes }}</div>
+				<div class="kpi-delta up">total registradas</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon gold">👥</div>
+			<div>
+				<div class="kpi-label">Clientes Registrados</div>
+				<div class="kpi-value">{{ data()!.clientesRegistrados }}</div>
+				<div class="kpi-delta up">en el sistema</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon red">📝</div>
+			<div>
+				<div class="kpi-label">Cotizaciones Pendientes</div>
+				<div class="kpi-value">{{ data()!.cotizacionesPendientes }}</div>
+				<div class="kpi-delta dn">por aprobar</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card-header">
+			<div class="card-title">Mis Últimas Ventas</div>
+		</div>
+		<div class="card-body">
+			@if (data()!.ultimasVentas.length === 0) {
+				<p class="empty-text">Aún no hay ventas registradas.</p>
+			} @else {
+				<table class="data-table">
+					<thead>
+						<tr><th>Cliente</th><th>Método de pago</th><th>Total</th></tr>
+					</thead>
+					<tbody>
+						@for (v of data()!.ultimasVentas; track v.idVenta) {
+							<tr>
+								<td class="td-name">{{ v.clienteNombre ?? 'Sin cliente' }}</td>
+								<td>{{ v.metodoPago ?? '—' }}</td>
+								<td>S/ {{ v.total | number:'1.0-2' }}</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</div>
+	</div>
+}

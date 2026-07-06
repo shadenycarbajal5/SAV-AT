@@ -1,0 +1,72 @@
+<div class="login-screen">
+	<div class="login-bg"></div>
+	<div class="login-glow"></div>
+
+	<div class="login-card">
+		<div class="login-logo">
+			<svg viewBox="0 0 44 44" fill="none" width="52" height="52">
+				<defs>
+					<linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stop-color="#4a90f5"/><stop offset="100%" stop-color="#1a3ec4"/>
+					</linearGradient>
+				</defs>
+				<path d="M22 6 A16 16 0 1 0 38 22" stroke="url(#lg1)" stroke-width="2" fill="none" stroke-linecap="round"/>
+				<polygon points="22,8 10,34 34,34" fill="url(#lg1)" opacity="0.9"/>
+				<polygon points="22,16 16,30 28,30" fill="#060f2e"/>
+			</svg>
+			<div class="brand">SAV-AT</div>
+			<div class="sub">Sistema de Atención &amp; Ventas</div>
+		</div>
+
+		<div class="login-title">Iniciar Sesión</div>
+		<div class="login-sub">Ingresa tus credenciales para continuar</div>
+
+		<form [formGroup]="frmLogin" (ngSubmit)="onSubmit()" class="login-form">
+
+			@if (errorMsg) {
+				<p-message severity="error" [text]="errorMsg" styleClass="w-full mb-3" />
+			}
+
+			<div class="form-group">
+				<label class="form-label" for="username">Usuario</label>
+				<input
+					pInputText
+					id="username"
+					type="text"
+					formControlName="username"
+					placeholder="Ingresa tu usuario"
+					class="w-full"
+					[class.ng-invalid]="usernameFb.invalid && usernameFb.touched"
+					[class.ng-dirty]="usernameFb.touched" />
+				@if (usernameFb.invalid && usernameFb.touched) {
+					<small class="field-error">El usuario es obligatorio.</small>
+				}
+			</div>
+
+			<div class="form-group">
+				<label class="form-label" for="password">Contraseña</label>
+				<p-password
+					id="password"
+					formControlName="password"
+					placeholder="••••••••"
+					[feedback]="false"
+					[toggleMask]="true"
+					styleClass="w-full"
+					inputStyleClass="w-full"
+					[class.ng-invalid]="passwordFb.invalid && passwordFb.touched"
+					[class.ng-dirty]="passwordFb.touched" />
+				@if (passwordFb.invalid && passwordFb.touched) {
+					<small class="field-error">La contraseña es obligatoria.</small>
+				}
+			</div>
+
+			<p-button
+				type="submit"
+				label="Iniciar sesión"
+				icon="pi pi-sign-in"
+				iconPos="right"
+				styleClass="w-full login-btn"
+				[loading]="loading" />
+		</form>
+	</div>
+</div>

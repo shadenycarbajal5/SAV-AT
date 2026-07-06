@@ -1,0 +1,226 @@
+<p-toast />
+<p-confirmdialog />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Clientes</h1>
+        <p class="breadcrumb">SAV-AT / Clientes</p>
+    </div>
+    @if (canWrite) {
+        <p-button
+            label="Nuevo Cliente"
+            icon="pi pi-plus"
+            (onClick)="openNew()" />
+    }
+</div>
+
+<!-- Barra de búsqueda -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+            pInputText
+            type="text"
+            placeholder="Buscar por nombre, DNI/RUC, teléfono o correo..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+    <span class="total-label">{{ clientesFiltrados().length }} cliente(s)</span>
+</div>
+
+<!-- Estado de carga -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando clientes...</p>
+    </div>
+} @else if (clientes().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">👥</span>
+        <p>Aún no hay clientes registrados.</p>
+        @if (canWrite) {
+            <p-button label="Registrar primer cliente" icon="pi pi-plus" (onClick)="openNew()" />
+        }
+    </div>
+} @else {
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <p-table
+            [value]="clientesFiltrados()"
+            [paginator]="clientesFiltrados().length > 10"
+            [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '700px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="nombres">Nombre <p-sortIcon field="nombres" /></th>
+                    <th>DNI / RUC</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Categoría</th>
+                    @if (canWrite) { <th class="col-actions">Acciones</th> }
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-c>
+                <tr>
+                    <td class="td-name">
+                        <div class="cliente-avatar">{{ c.nombres.charAt(0).toUpperCase() }}</div>
+                        {{ c.nombres }}
+                    </td>
+                    <td>{{ c.dniRuc ?? '—' }}</td>
+                    <td>{{ c.telefono ?? '—' }}</td>
+                    <td class="td-email">{{ c.correo ?? '—' }}</td>
+                    <td>
+                        @if (c.categoriaClienteNombre) {
+                            <span class="badge badge-blue">{{ c.categoriaClienteNombre }}</span>
+                        } @else {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    @if (canWrite) {
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                <button class="btn-icon edit" title="Editar" (click)="openEdit(c)">
+                                    ✏️
+                                </button>
+                                <button class="btn-icon del" title="Eliminar" (click)="confirmDelete(c)">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    }
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="canWrite ? 6 : 5" class="empty-row">
+                        No se encontraron resultados para "{{ searchQuery() }}"
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+}
+
+<!-- Dialog: Nuevo / Editar -->
+<p-dialog
+    [header]="dialogTitle"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '520px' }"
+    [closable]="!saving()"
+    (onHide)="closeDialog()">
+
+    <form [formGroup]="form" class="dialog-form">
+
+        <!-- Nombre -->
+        <div class="form-row">
+            <label class="form-label required">Nombre completo</label>
+            <input
+                pInputText
+                formControlName="nombres"
+                placeholder="Ej. Juan Pérez García"
+                class="w-full"
+                [class.ng-invalid]="fieldError('nombres')"
+                [class.ng-dirty]="form.get('nombres')?.touched" />
+            @if (fieldError('nombres')) {
+                <small class="field-error">{{ fieldErrorMsg('nombres') }}</small>
+            }
+        </div>
+
+        <!-- DNI / RUC -->
+        <div class="form-row-2">
+            <div class="form-row">
+                <label class="form-label">DNI / RUC</label>
+                <input
+                    pInputText
+                    formControlName="dniRuc"
+                    placeholder="Ej. 12345678"
+                    class="w-full"
+                    [class.ng-invalid]="fieldError('dniRuc')"
+                    [class.ng-dirty]="form.get('dniRuc')?.touched" />
+                @if (fieldError('dniRuc')) {
+                    <small class="field-error">{{ fieldErrorMsg('dniRuc') }}</small>
+                }
+            </div>
+
+            <div class="form-row">
+                <label class="form-label">Teléfono</label>
+                <input
+                    pInputText
+                    formControlName="telefono"
+                    placeholder="Ej. 987654321"
+                    class="w-full"
+                    [class.ng-invalid]="fieldError('telefono')"
+                    [class.ng-dirty]="form.get('telefono')?.touched" />
+                @if (fieldError('telefono')) {
+                    <small class="field-error">{{ fieldErrorMsg('telefono') }}</small>
+                }
+            </div>
+        </div>
+
+        <!-- Correo -->
+        <div class="form-row">
+            <label class="form-label">Correo electrónico</label>
+            <input
+                pInputText
+                formControlName="correo"
+                type="email"
+                placeholder="Ej. juan@correo.com"
+                class="w-full"
+                [class.ng-invalid]="fieldError('correo')"
+                [class.ng-dirty]="form.get('correo')?.touched" />
+            @if (fieldError('correo')) {
+                <small class="field-error">{{ fieldErrorMsg('correo') }}</small>
+            }
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-row">
+            <label class="form-label">Dirección</label>
+            <input
+                pInputText
+                formControlName="direccion"
+                placeholder="Ej. Jr. Lima 123, Abancay"
+                class="w-full" />
+        </div>
+
+        <!-- Categoría -->
+        <div class="form-row">
+            <label class="form-label">Categoría de cliente</label>
+            <p-select
+                formControlName="idCategoriaCliente"
+                [options]="categoriasOpciones"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Sin categoría"
+                styleClass="w-full"
+                [showClear]="true" />
+        </div>
+
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="saving()"
+            (onClick)="closeDialog()" />
+        <p-button
+            [label]="editingId() ? 'Guardar cambios' : 'Registrar cliente'"
+            icon="pi pi-check"
+            [loading]="saving()"
+            (onClick)="onSave()" />
+    </ng-template>
+
+</p-dialog>

@@ -1,0 +1,345 @@
+<p-toast />
+<p-confirmdialog />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Reparaciones</h1>
+        <p class="breadcrumb">SAV-AT / Reparaciones</p>
+    </div>
+    @if (canInsert) {
+        <p-button label="Nueva Orden" icon="pi pi-plus" (onClick)="openNew()" />
+    }
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon blue">🔧</div>
+        <div>
+            <div class="kpi-label">Total Órdenes</div>
+            <div class="kpi-value">{{ totalOrdenes }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon gold">⚙️</div>
+        <div>
+            <div class="kpi-label">En Proceso</div>
+            <div class="kpi-value">{{ enProceso }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon green">✅</div>
+        <div>
+            <div class="kpi-label">Listas para entrega</div>
+            <div class="kpi-value">{{ listas }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon purple">📦</div>
+        <div>
+            <div class="kpi-label">Entregadas</div>
+            <div class="kpi-value">{{ entregadas }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input pInputText type="text"
+            placeholder="Buscar por cliente, equipo o N° orden..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+    <p-select [options]="estadoOpciones" optionLabel="label" optionValue="value"
+        [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)"
+        styleClass="select-filter" />
+    <span class="total-label">{{ ordenesFiltradas().length }} orden(es)</span>
+</div>
+
+<!-- Tabla -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando órdenes de servicio...</p>
+    </div>
+} @else if (ordenes().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">🔧</span>
+        <p>Aún no hay órdenes de servicio registradas.</p>
+        @if (canInsert) {
+            <p-button label="Registrar primera orden" icon="pi pi-plus" (onClick)="openNew()" />
+        }
+    </div>
+} @else {
+    <div class="table-card">
+        <p-table [value]="ordenesFiltradas()"
+            [paginator]="ordenesFiltradas().length > 15"
+            [rows]="15" [rowsPerPageOptions]="[15,30,50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '860px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="idOs">#</th>
+                    <th pSortableColumn="fechaIngreso">Ingreso</th>
+                    <th>Entrega estimada</th>
+                    <th>Cliente</th>
+                    <th>Equipo</th>
+                    <th>Técnico</th>
+                    <th>Estado</th>
+                    <th class="col-actions">Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-o>
+                <tr>
+                    <td class="td-id">#{{ o.idOs }}</td>
+                    <td>{{ formatFecha(o.fechaIngreso) }}</td>
+                    <td>{{ formatFecha(o.fechaEntrega) }}</td>
+                    <td class="td-cliente">{{ o.clienteNombre ?? '—' }}</td>
+                    <td class="td-equipo">
+                        <span class="equipo-chip">{{ o.equipoDescripcion ?? '—' }}</span>
+                    </td>
+                    <td class="td-tecnico">{{ o.usuarioNombre ?? '—' }}</td>
+                    <td>
+                        <div class="estado-cell">
+                            <span class="estado-icon">{{ estadoIcon(o.estado) }}</span>
+                            <p-tag [value]="estadoLabel(o.estado)" [severity]="estadoBadge(o.estado)" />
+                        </div>
+                    </td>
+                    <td class="col-actions">
+                        <div class="action-btns">
+                            <!-- Ver repuestos: solo técnico/admin -->
+                            @if (canRepuestos) {
+                                <p-button icon="pi pi-wrench" severity="secondary" size="small"
+                                    pTooltip="Repuestos usados" tooltipPosition="top"
+                                    (onClick)="openDetalle(o)" />
+                            }
+                            <!-- Editar: técnico/admin -->
+                            @if (canUpdate) {
+                                <p-button icon="pi pi-pencil" severity="info" size="small"
+                                    pTooltip="Editar orden" tooltipPosition="top"
+                                    (onClick)="openEdit(o)" />
+                            }
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="8" class="empty-row">
+                        No se encontraron órdenes para los filtros aplicados.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+}
+
+<!-- ═══════════════════ DIÁLOGO NUEVA / EDITAR ORDEN ═══════════════════ -->
+<p-dialog
+    [header]="editingId() === null ? 'Nueva Orden de Servicio' : 'Editar Orden #' + editingId()"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '540px' }"
+    [draggable]="false"
+    [resizable]="false">
+
+    <form [formGroup]="form" class="os-form">
+
+        <div class="field">
+            <label>Cliente <span class="req">*</span></label>
+            <p-select formControlName="idCliente"
+                [options]="clientes()"
+                optionLabel="nombres"
+                optionValue="idCliente"
+                placeholder="Seleccionar cliente"
+                [filter]="true"
+                filterBy="nombres"
+                styleClass="w-full" />
+            @if (form.get('idCliente')?.invalid && form.get('idCliente')?.touched) {
+                <small class="error">El cliente es requerido.</small>
+            }
+        </div>
+
+        <!-- ── Equipo: modo NUEVO → 3 campos de texto ── -->
+        @if (editingId() === null) {
+            <div class="field-group-equipo">
+                <p class="equipo-hint">
+                    <i class="pi pi-info-circle"></i>
+                    Ingresa los datos del equipo. Se registrará automáticamente.
+                </p>
+
+                <div class="field">
+                    <label>Marca del equipo <span class="req">*</span></label>
+                    <input pInputText formControlName="equipoMarca"
+                        placeholder="Ej: Lenovo, HP, Samsung..."
+                        class="w-full" />
+                    @if (form.get('equipoMarca')?.invalid && form.get('equipoMarca')?.touched) {
+                        <small class="error">La marca es requerida.</small>
+                    }
+                </div>
+
+                <div class="field">
+                    <label>Modelo</label>
+                    <input pInputText formControlName="equipoModelo"
+                        placeholder="Ej: ThinkPad E14, Pavilion 15..."
+                        class="w-full" />
+                </div>
+
+                <div class="field">
+                    <label>N° de Serie</label>
+                    <input pInputText formControlName="equipoSerie"
+                        placeholder="Ej: SN123456789"
+                        class="w-full" />
+                </div>
+            </div>
+
+        } @else {
+            <!-- ── Equipo: modo EDITAR → selector ── -->
+            <div class="field">
+                <label>Equipo <span class="req">*</span></label>
+                <p-select formControlName="idEquipo"
+                    [options]="equipos()"
+                    optionLabel="label"
+                    optionValue="idEquipo"
+                    placeholder="Seleccionar equipo"
+                    [filter]="true"
+                    styleClass="w-full" />
+                @if (form.get('idEquipo')?.invalid && form.get('idEquipo')?.touched) {
+                    <small class="error">El equipo es requerido.</small>
+                }
+            </div>
+        }
+
+        <div class="field">
+            <label>Estado</label>
+            <p-select formControlName="estado"
+                [options]="estadoFormOpciones"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full" />
+        </div>
+
+        <div class="field">
+            <label>Fecha de entrega estimada</label>
+            <p-datepicker formControlName="fechaEntrega"
+                dateFormat="dd/mm/yy"
+                [showIcon]="true"
+                styleClass="w-full" />
+        </div>
+
+        <div class="field">
+            <label>Descripción del problema</label>
+            <textarea pTextarea formControlName="descripcionProblema"
+                rows="3" class="w-full"
+                placeholder="Describe el problema reportado..."></textarea>
+        </div>
+
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary"
+            (onClick)="dialogVisible.set(false)" [disabled]="saving()" />
+        <p-button [label]="saving() ? 'Guardando...' : 'Guardar'"
+            icon="pi pi-check"
+            (onClick)="saveOS()"
+            [loading]="saving()" />
+    </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════ DIÁLOGO DETALLE / REPUESTOS ═══════════════════ -->
+<p-dialog
+    [header]="'Repuestos — Orden #' + (ordenSelec()?.idOs ?? '')"
+    [visible]="detalleVisible()"
+    (visibleChange)="detalleVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '620px' }"
+    [draggable]="false"
+    [resizable]="false">
+
+    <!-- Info rápida de la orden -->
+    @if (ordenSelec(); as o) {
+        <div class="orden-info-bar">
+            <span><strong>Cliente:</strong> {{ o.clienteNombre ?? '—' }}</span>
+            <span><strong>Equipo:</strong> {{ o.equipoDescripcion ?? '—' }}</span>
+            <p-tag [value]="estadoLabel(o.estado)" [severity]="estadoBadge(o.estado)" />
+        </div>
+    }
+
+    <!-- Formulario agregar repuesto -->
+    @if (canRepuestos) {
+        <div class="repuesto-form-card">
+            <h4 class="repuesto-form-title">Agregar repuesto</h4>
+            <form [formGroup]="repuestoForm" class="repuesto-form">
+                <div class="rf-field rf-product">
+                    <label>Repuesto <span class="req">*</span></label>
+                    <p-select formControlName="idProducto"
+                        [options]="productos()"
+                        optionLabel="nombre"
+                        optionValue="idProducto"
+                        placeholder="Seleccionar repuesto"
+                        [filter]="true"
+                        filterBy="nombre"
+                        styleClass="w-full" />
+                    @if (repuestoForm.get('idProducto')?.invalid && repuestoForm.get('idProducto')?.touched) {
+                        <small class="error">Selecciona un repuesto.</small>
+                    }
+                </div>
+                <div class="rf-field rf-qty">
+                    <label>Cantidad <span class="req">*</span></label>
+                    <p-inputnumber formControlName="cantidad"
+                        [min]="1" [showButtons]="true"
+                        styleClass="w-full" />
+                </div>
+                <p-button icon="pi pi-plus" label="Agregar"
+                    (onClick)="addRepuesto()"
+                    [loading]="savingRepuest()"
+                    styleClass="rf-btn" />
+            </form>
+        </div>
+    }
+
+    <!-- Lista de repuestos usados -->
+    @if (loadingRepuest()) {
+        <div class="state-box-sm"><span class="spinner"></span><p>Cargando...</p></div>
+    } @else if (repuestos().length === 0) {
+        <div class="state-box-sm">
+            <span style="font-size:28px">🔩</span>
+            <p>No hay repuestos registrados para esta orden.</p>
+        </div>
+    } @else {
+        <p-table [value]="repuestos()" styleClass="p-datatable-sm repuesto-table">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Repuesto</th>
+                    <th class="col-qty">Cantidad</th>
+                    @if (canRepuestos) { <th class="col-act"></th> }
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-r>
+                <tr>
+                    <td class="td-repuesto-nombre">{{ r.productoNombre }}</td>
+                    <td class="col-qty">x{{ r.cantidad }}</td>
+                    @if (canRepuestos) {
+                        <td class="col-act">
+                            <p-button icon="pi pi-trash" severity="danger" size="small"
+                                (onClick)="confirmDeleteRepuesto(r)" />
+                        </td>
+                    }
+                </tr>
+            </ng-template>
+        </p-table>
+    }
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cerrar" severity="secondary" (onClick)="detalleVisible.set(false)" />
+    </ng-template>
+</p-dialog>

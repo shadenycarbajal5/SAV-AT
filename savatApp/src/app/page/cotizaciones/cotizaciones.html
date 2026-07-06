@@ -1,0 +1,128 @@
+<p-toast />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Cotizaciones</h1>
+        <p class="breadcrumb">SAV-AT / Cotizaciones</p>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon blue">📝</div>
+        <div>
+            <div class="kpi-label">Total</div>
+            <div class="kpi-value">{{ totalCotizaciones }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon gold">⏳</div>
+        <div>
+            <div class="kpi-label">Pendientes</div>
+            <div class="kpi-value">{{ pendientes }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon green">✅</div>
+        <div>
+            <div class="kpi-label">Aprobadas</div>
+            <div class="kpi-value">{{ aprobadas }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon purple">🔄</div>
+        <div>
+            <div class="kpi-label">Convertidas</div>
+            <div class="kpi-value">{{ convertidas }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+            pInputText
+            type="text"
+            placeholder="Buscar por cliente o N° cotización..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+    <p-select
+        [options]="estadoOpciones"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="filtroEstado()"
+        (ngModelChange)="filtroEstado.set($event)"
+        styleClass="select-filter" />
+    <span class="total-label">{{ cotizacionesFiltradas().length }} cotización(es)</span>
+</div>
+
+<!-- Estado de carga -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando cotizaciones...</p>
+    </div>
+} @else if (cotizaciones().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">📝</span>
+        <p>Aún no hay cotizaciones registradas.</p>
+    </div>
+} @else {
+    <div class="table-card">
+        <p-table
+            [value]="cotizacionesFiltradas()"
+            [paginator]="cotizacionesFiltradas().length > 15"
+            [rows]="15"
+            [rowsPerPageOptions]="[15, 30, 50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '700px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="idCotizacion">#</th>
+                    <th pSortableColumn="fecha">Fecha</th>
+                    <th>Vencimiento</th>
+                    <th>Cliente</th>
+                    <th pSortableColumn="total">Total</th>
+                    <th>Estado</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-c>
+                <tr [class.row-vencida]="estaVencida(c)">
+                    <td class="td-id">#{{ c.idCotizacion }}</td>
+                    <td>{{ formatFecha(c.fecha) }}</td>
+                    <td [class.td-vencida]="estaVencida(c)">
+                        {{ formatFecha(c.fechaVencimiento) }}
+                        @if (estaVencida(c)) {
+                            <span class="badge-vencida">VENCIDA</span>
+                        }
+                    </td>
+                    <td>{{ c.clienteNombre ?? '—' }}</td>
+                    <td class="td-total">{{ formatMonto(c.total) }}</td>
+                    <td>
+                        <p-tag
+                            [value]="estadoLabel(c.estado)"
+                            [severity]="estadoBadge(c.estado)" />
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="empty-row">
+                        No se encontraron cotizaciones para "{{ searchQuery() }}"
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+}

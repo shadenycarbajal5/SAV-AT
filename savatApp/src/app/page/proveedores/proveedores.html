@@ -1,0 +1,188 @@
+<p-toast />
+<p-confirmdialog />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Proveedores</h1>
+        <p class="breadcrumb">SAV-AT / Proveedores</p>
+    </div>
+    @if (canWrite) {
+        <p-button label="Nuevo Proveedor" icon="pi pi-plus" (onClick)="openNew()" />
+    }
+</div>
+
+<!-- Barra de búsqueda -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+            pInputText
+            type="text"
+            placeholder="Buscar por nombre, RUC, teléfono o contacto..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+    <span class="total-label">{{ proveedoresFiltrados().length }} proveedor(es)</span>
+</div>
+
+<!-- Estado de carga -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando proveedores...</p>
+    </div>
+} @else if (proveedores().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">🏭</span>
+        <p>Aún no hay proveedores registrados.</p>
+        @if (canWrite) {
+            <p-button label="Registrar primer proveedor" icon="pi pi-plus" (onClick)="openNew()" />
+        }
+    </div>
+} @else {
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <p-table
+            [value]="proveedoresFiltrados()"
+            [paginator]="proveedoresFiltrados().length > 10"
+            [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '700px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre" /></th>
+                    <th>RUC</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Contacto</th>
+                    @if (canWrite) { <th class="col-actions">Acciones</th> }
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-p>
+                <tr>
+                    <td class="td-name">
+                        <div class="proveedor-avatar">{{ p.nombre.charAt(0).toUpperCase() }}</div>
+                        {{ p.nombre }}
+                    </td>
+                    <td>{{ p.ruc ?? '—' }}</td>
+                    <td>{{ p.telefono ?? '—' }}</td>
+                    <td class="td-email">{{ p.correo ?? '—' }}</td>
+                    <td>{{ p.contacto ?? '—' }}</td>
+                    @if (canWrite) {
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                <button class="btn-icon edit" title="Editar" (click)="openEdit(p)">✏️</button>
+                                <button class="btn-icon del" title="Eliminar" (click)="confirmDelete(p)">🗑️</button>
+                            </div>
+                        </td>
+                    }
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="canWrite ? 6 : 5" class="empty-row">
+                        No se encontraron resultados para "{{ searchQuery() }}"
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+}
+
+<!-- Dialog: Nuevo / Editar -->
+<p-dialog
+    [header]="dialogTitle"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '520px' }"
+    [closable]="!saving()"
+    (onHide)="closeDialog()">
+
+    <form [formGroup]="form" class="dialog-form">
+
+        <!-- Nombre -->
+        <div class="form-row">
+            <label class="form-label required">Nombre / Razón social</label>
+            <input
+                pInputText
+                formControlName="nombre"
+                placeholder="Ej. Distribuidora Tech SAC"
+                class="w-full"
+                [class.ng-invalid]="fieldError('nombre')"
+                [class.ng-dirty]="form.get('nombre')?.touched" />
+            @if (fieldError('nombre')) {
+                <small class="field-error">{{ fieldErrorMsg('nombre') }}</small>
+            }
+        </div>
+
+        <!-- RUC y Teléfono -->
+        <div class="form-row-2">
+            <div class="form-row">
+                <label class="form-label">RUC</label>
+                <input pInputText formControlName="ruc" placeholder="Ej. 20512345678" class="w-full" />
+                @if (fieldError('ruc')) { <small class="field-error">{{ fieldErrorMsg('ruc') }}</small> }
+            </div>
+            <div class="form-row">
+                <label class="form-label">Teléfono</label>
+                <input pInputText formControlName="telefono" placeholder="Ej. 987654321" class="w-full" />
+            </div>
+        </div>
+
+        <!-- Correo -->
+        <div class="form-row">
+            <label class="form-label">Correo electrónico</label>
+            <input
+                pInputText
+                formControlName="correo"
+                type="email"
+                placeholder="Ej. ventas@distributech.com"
+                class="w-full"
+                [class.ng-invalid]="fieldError('correo')"
+                [class.ng-dirty]="form.get('correo')?.touched" />
+            @if (fieldError('correo')) { <small class="field-error">{{ fieldErrorMsg('correo') }}</small> }
+        </div>
+
+        <!-- Contacto -->
+        <div class="form-row">
+            <label class="form-label">Persona de contacto</label>
+            <input pInputText formControlName="contacto" placeholder="Ej. Carlos Mamani" class="w-full" />
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-row">
+            <label class="form-label">Dirección</label>
+            <textarea
+                pTextarea
+                formControlName="direccion"
+                placeholder="Ej. Av. Lima 456, Abancay"
+                class="w-full"
+                rows="2"
+                autoResize="true"></textarea>
+        </div>
+
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="saving()"
+            (onClick)="closeDialog()" />
+        <p-button
+            [label]="editingId() ? 'Guardar cambios' : 'Registrar proveedor'"
+            icon="pi pi-check"
+            [loading]="saving()"
+            (onClick)="onSave()" />
+    </ng-template>
+
+</p-dialog>

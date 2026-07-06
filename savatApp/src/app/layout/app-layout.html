@@ -1,0 +1,224 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="app-shell">
+
+	<!-- SIDEBAR -->
+	<aside class="sidebar" [class.open]="sidebarOpen()">
+		<div class="sidebar-logo">
+			<svg viewBox="0 0 44 44" fill="none" width="34" height="34">
+				<defs>
+					<linearGradient id="slg" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stop-color="#4a90f5"/><stop offset="100%" stop-color="#1a3ec4"/>
+					</linearGradient>
+				</defs>
+				<path d="M22 6 A16 16 0 1 0 38 22" stroke="url(#slg)" stroke-width="2" fill="none" stroke-linecap="round"/>
+				<polygon points="22,8 10,34 34,34" fill="url(#slg)" opacity="0.9"/>
+				<polygon points="22,16 16,30 28,30" fill="#080f25"/>
+			</svg>
+			<div>
+				<div class="brand">SAV-AT</div>
+				<div class="tagline">Atención &amp; Ventas</div>
+			</div>
+		</div>
+
+		<div class="sidebar-user">
+			<div class="user-avatar">{{ userInitials }}</div>
+			<div class="user-info">
+				<div class="name">{{ userName }}</div>
+				<div class="role">{{ userRoleLabel }}</div>
+			</div>
+			<div class="user-dot"></div>
+		</div>
+
+		@for (section of navSections; track section.label) {
+			<div class="nav-section-label">{{ section.label }}</div>
+			@for (item of section.items; track item.route) {
+				<a class="nav-item" [class.active]="isActive(item.route)" [routerLink]="item.route">
+					<span class="nav-icon">{{ item.icon }}</span> {{ item.label }}
+					@if (item.badge) {
+						<span class="nav-badge" [class.danger]="item.badgeType === 'danger'">{{ item.badge }}</span>
+					}
+				</a>
+			}
+		}
+
+		<div class="sidebar-footer">
+			<a class="nav-item" (click)="logout()">
+				<span class="nav-icon">🚪</span> Cerrar Sesión
+			</a>
+		</div>
+	</aside>
+
+	<!-- Overlay mobile -->
+	@if (sidebarOpen()) {
+		<div class="sidebar-overlay" (click)="toggleSidebar()"></div>
+	}
+
+	<!-- MAIN -->
+	<div class="main-area">
+		<header class="topbar">
+			<button class="icon-btn menu-toggle" (click)="toggleSidebar()" title="Menú">☰</button>
+
+			<div class="topbar-search">
+				<span class="search-icon">🔍</span>
+				<input type="text" placeholder="Buscar en el sistema..." />
+			</div>
+
+			<div class="topbar-actions">
+				<div class="icon-btn" title="Notificaciones">
+					🔔<div class="notif-dot"></div>
+				</div>
+				<div class="user-profile" (click)="menu.toggle($event)">
+					<div class="topbar-avatar">{{ userInitials }}</div>
+				</div>
+				<p-menu #menu [model]="profileItems" [popup]="true" />
+			</div>
+		</header>
+
+		<div class="content">
+			<router-outlet />
+		</div>
+	</div>
+</div>
+
+<!-- ═══════════════════ DIALOG MI PERFIL ═══════════════════ -->
+<p-dialog
+	header="Mi Perfil"
+	[(visible)]="perfilVisible"
+	[modal]="true"
+	[style]="{ width: '420px' }"
+	[draggable]="false"
+	[resizable]="false">
+
+	<div class="perfil-body">
+
+		<div class="perfil-avatar-wrap">
+			<div class="perfil-avatar">{{ userInitials }}</div>
+			<span class="perfil-rol-badge" [ngClass]="userRoleColor">
+				{{ userRoleLabel }}
+			</span>
+		</div>
+
+		<div class="perfil-datos">
+			<div class="perfil-row">
+				<span class="perfil-label"><i class="pi pi-user"></i> Nombre completo</span>
+				<span class="perfil-val">{{ userName }}</span>
+			</div>
+			<div class="perfil-row">
+				<span class="perfil-label"><i class="pi pi-at"></i> Usuario</span>
+				<span class="perfil-val mono">{{ userUsername }}</span>
+			</div>
+			<div class="perfil-row">
+				<span class="perfil-label"><i class="pi pi-shield"></i> Rol</span>
+				<span class="perfil-val">{{ userRoleLabel }}</span>
+			</div>
+		</div>
+
+		<p class="perfil-nota">
+			Para cambiar tu contraseña o datos personales, contacta al administrador del sistema.
+		</p>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<p-button label="Cerrar" icon="pi pi-times" severity="secondary" [outlined]="true"
+			(onClick)="perfilVisible.set(false)" />
+		<p-button label="Cerrar Sesión" icon="pi pi-sign-out" severity="danger" [outlined]="true"
+			(onClick)="logout()" />
+	</ng-template>
+</p-dialog>
+
+<!-- ═══════════════════ DIALOG REGISTRAR USUARIO ═══════════════════ -->
+<p-dialog
+	header="Registrar nuevo usuario"
+	[visible]="showRegisterDialog()"
+	(visibleChange)="showRegisterDialog.set($event)"
+	[modal]="true"
+	[closable]="true"
+	[draggable]="false"
+	[resizable]="false"
+	[style]="{ width: '440px' }">
+
+	<div class="register-form">
+
+		<div class="field">
+			<label for="reg-nombres">Nombre completo <span class="req">*</span></label>
+			<input id="reg-nombres" pInputText [(ngModel)]="nuevoUsuario.nombres"
+				placeholder="Ej. Juan Pérez García" class="w-full" />
+		</div>
+
+		<div class="field">
+			<label for="reg-username">Usuario <span class="req">*</span></label>
+			<input id="reg-username" pInputText [(ngModel)]="nuevoUsuario.username"
+				placeholder="Ej. jperez" class="w-full" />
+		</div>
+
+		<div class="field">
+			<label for="reg-rol">Rol <span class="req">*</span></label>
+			<p-select
+				id="reg-rol"
+				[options]="roleOptions"
+				[(ngModel)]="nuevoUsuario.rol"
+				optionLabel="label"
+				optionValue="value"
+				[placeholder]="rolesLoading() ? 'Cargando roles...' : 'Selecciona un rol'"
+				[disabled]="rolesLoading()"
+				[style]="{ width: '100%' }">
+
+				<ng-template pTemplate="selectedItem" let-item>
+					<div class="rol-selected" *ngIf="item">
+						<span class="rol-badge" [class]="'rol-' + item.value.toLowerCase()">{{ item.label }}</span>
+					</div>
+				</ng-template>
+
+				<ng-template pTemplate="item" let-item>
+					<div class="rol-option">
+						<span class="rol-badge" [class]="'rol-' + item.value.toLowerCase()">{{ item.label }}</span>
+						<span class="rol-desc">
+							@if (item.value === 'ADMINISTRADOR') { Acceso total al sistema }
+							@if (item.value === 'VENDEDOR') { Ventas, clientes y cotizaciones }
+							@if (item.value === 'TECNICO') { Reparaciones y órdenes de servicio }
+						</span>
+					</div>
+				</ng-template>
+			</p-select>
+			@if (rolesLoading()) {
+				<small class="roles-loading-hint">
+					<span class="pi pi-spin pi-spinner"></span> Obteniendo roles del servidor...
+				</small>
+			}
+		</div>
+
+		<div class="field">
+			<label for="reg-pass">Contraseña <span class="req">*</span></label>
+			<p-password id="reg-pass" [(ngModel)]="nuevoUsuario.password"
+				[feedback]="true" [toggleMask]="true" placeholder="Mínimo 6 caracteres"
+				[style]="{ width: '100%' }"
+				promptLabel="Ingresa una contraseña" weakLabel="Débil" mediumLabel="Media" strongLabel="Fuerte" />
+		</div>
+
+		<div class="field">
+			<label for="reg-confirm">Confirmar contraseña <span class="req">*</span></label>
+			<p-password id="reg-confirm" [(ngModel)]="nuevoUsuario.confirmPassword"
+				[feedback]="false" [toggleMask]="true" placeholder="Repite la contraseña"
+				[style]="{ width: '100%' }" />
+			@if (nuevoUsuario.confirmPassword && nuevoUsuario.password !== nuevoUsuario.confirmPassword) {
+				<small class="error-hint">Las contraseñas no coinciden.</small>
+			}
+		</div>
+
+	</div>
+
+	<ng-template pTemplate="footer">
+		<button class="btn-cancel" (click)="closeRegisterDialog()" [disabled]="registerLoading()">
+			Cancelar
+		</button>
+		<button class="btn-register" (click)="registrarUsuario()" [disabled]="registerLoading()">
+			@if (registerLoading()) {
+				<span class="pi pi-spin pi-spinner"></span> Registrando...
+			} @else {
+				<span class="pi pi-user-plus"></span> Registrar usuario
+			}
+		</button>
+	</ng-template>
+</p-dialog>

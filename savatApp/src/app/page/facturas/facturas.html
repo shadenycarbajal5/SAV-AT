@@ -1,0 +1,244 @@
+<p-toast />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Comprobantes</h1>
+        <p class="breadcrumb">SAV-AT / Comprobantes de Pago</p>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card empresa-card">
+        <div class="empresa-logo">AT</div>
+        <div>
+            <div class="kpi-label">Empresa Emisora</div>
+            <div class="empresa-nombre">{{ empresa.razonSocial }}</div>
+            <div class="empresa-ruc">RUC: {{ empresa.ruc }}</div>
+            <div class="empresa-dir">{{ empresa.direccion }} — {{ empresa.ubigeo }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon blue">📄</div>
+        <div>
+            <div class="kpi-label">Total Ventas</div>
+            <div class="kpi-value">{{ totalVentas }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon green">💰</div>
+        <div>
+            <div class="kpi-label">Ingresos Totales</div>
+            <div class="kpi-value">{{ formatMonto(totalIngresos) }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+            pInputText type="text"
+            placeholder="Buscar por N° venta, cliente o vendedor..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+    <span class="total-label">{{ ventasFiltradas().length }} comprobante(s)</span>
+</div>
+
+<!-- Estado de carga -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando comprobantes...</p>
+    </div>
+} @else if (ventas().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">📄</span>
+        <p>Aún no hay ventas registradas para generar comprobantes.</p>
+    </div>
+} @else {
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <p-table
+            [value]="ventasFiltradas()"
+            [paginator]="ventasFiltradas().length > 15"
+            [rows]="15"
+            [rowsPerPageOptions]="[15, 30, 50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '800px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="idVenta">#</th>
+                    <th pSortableColumn="fecha">Fecha</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Método Pago</th>
+                    <th pSortableColumn="total">Total</th>
+                    <th class="col-actions">Comprobante</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-v>
+                <tr>
+                    <td class="td-id">#{{ v.idVenta }}</td>
+                    <td>{{ formatFecha(v.fecha) }}</td>
+                    <td class="td-cliente">{{ v.clienteNombre ?? 'Consumidor Final' }}</td>
+                    <td>{{ v.usuarioNombre ?? '—' }}</td>
+                    <td>
+                        <p-tag [value]="metodoLabel(v.metodoPago)" [severity]="metodoBadge(v.metodoPago)" />
+                    </td>
+                    <td class="td-total">{{ formatMonto(v.total) }}</td>
+                    <td class="col-actions">
+                        <div class="action-btns">
+                            <button class="btn-comprobante boleta" title="Generar Boleta" (click)="abrirPreview(v, 'BOLETA')">
+                                📄 Boleta
+                            </button>
+                            <button class="btn-comprobante factura" title="Generar Factura" (click)="abrirPreview(v, 'FACTURA')">
+                                🧾 Factura
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7" class="empty-row">No se encontraron resultados.</td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+}
+
+<!-- ═══════════ DIALOG PREVIEW ═══════════ -->
+<p-dialog
+    [header]="'Vista previa — ' + previewTipo() + ' #' + previewVenta()?.idVenta"
+    [(visible)]="previewVisible"
+    [modal]="true"
+    [style]="{ width: '640px' }"
+    [closable]="true"
+    (onHide)="closePreview()">
+
+    @if (previewVenta(); as v) {
+        <div class="preview-doc">
+
+            <!-- Cabecera del documento -->
+            <div class="doc-header">
+                <div class="doc-empresa">
+                    <div class="doc-logo">AT</div>
+                    <div>
+                        <div class="doc-razon">{{ empresa.razonSocial }}</div>
+                        <div class="doc-ruc">RUC: {{ empresa.ruc }}</div>
+                        <div class="doc-dir">{{ empresa.direccion }}</div>
+                        <div class="doc-dir">{{ empresa.ubigeo }}</div>
+                    </div>
+                </div>
+                <div class="doc-tipo-box">
+                    <div class="doc-tipo-label">{{ previewTipo() }}</div>
+                    <div class="doc-tipo-label" style="font-size:10px;font-weight:400;">ELECTRÓNICA</div>
+                    <div class="doc-tipo-num">
+                        {{ previewTipo() === 'BOLETA' ? 'B' : 'F' }}001-{{ v.idVenta.toString().padStart(6, '0') }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info venta -->
+            <div class="doc-section">
+                <div class="doc-row">
+                    <span class="doc-label">Cliente</span>
+                    <span class="doc-val">{{ v.clienteNombre ?? 'Consumidor Final' }}</span>
+                </div>
+                <div class="doc-row">
+                    <span class="doc-label">Fecha</span>
+                    <span class="doc-val">{{ formatFechaLarga(v.fecha) }}</span>
+                </div>
+                <div class="doc-row">
+                    <span class="doc-label">Vendedor</span>
+                    <span class="doc-val">{{ v.usuarioNombre ?? '—' }}</span>
+                </div>
+                <div class="doc-row">
+                    <span class="doc-label">Método Pago</span>
+                    <span class="doc-val">
+                        <p-tag [value]="metodoLabel(v.metodoPago)" [severity]="metodoBadge(v.metodoPago)" />
+                    </span>
+                </div>
+            </div>
+
+            <!-- Detalle productos -->
+            <div class="doc-section">
+                <div class="doc-section-title">Detalle</div>
+                @if (loadingDetalle()) {
+                    <div class="detalle-loading">
+                        <span class="spinner-sm"></span> Cargando detalle...
+                    </div>
+                } @else {
+                    <table class="detalle-table">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Cant.</th>
+                                <th>P. Unit.</th>
+                                <th>Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (d of previewDetalle(); track d.idDetalle) {
+                                <tr>
+                                    <td>{{ d.nombreProducto }}</td>
+                                    <td class="tc">{{ d.cantidad }}</td>
+                                    <td class="tr">S/ {{ (+d.precioUnitario).toFixed(2) }}</td>
+                                    <td class="tr">S/ {{ (+d.subtotal).toFixed(2) }}</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <!-- Totales -->
+            <div class="doc-totales">
+                <div class="doc-total-row">
+                    <span>Subtotal (sin IGV)</span>
+                    <span>S/ {{ (v.subtotal * 0.82).toFixed(2) }}</span>
+                </div>
+                <div class="doc-total-row">
+                    <span>IGV (18%)</span>
+                    <span>S/ {{ (v.subtotal * 0.18).toFixed(2) }}</span>
+                </div>
+                @if (v.descuento > 0) {
+                    <div class="doc-total-row text-red">
+                        <span>Descuento</span>
+                        <span>- S/ {{ (+v.descuento).toFixed(2) }}</span>
+                    </div>
+                }
+                <div class="doc-total-row gran-total">
+                    <span>TOTAL</span>
+                    <span>{{ formatMonto(v.total) }}</span>
+                </div>
+            </div>
+
+        </div>
+    }
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="closePreview()" />
+        <p-button
+            [label]="'Imprimir ' + previewTipo()"
+            icon="pi pi-print"
+            [loading]="generando()"
+            (onClick)="imprimirFactura()" />
+    </ng-template>
+
+</p-dialog>

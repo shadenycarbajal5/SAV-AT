@@ -2,12 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-<<<<<<< HEAD
     "packageManager": "npm",
-    "analytics": "8fd76996-7bab-4d1a-bfe6-4cbb99ccd8a6"
-=======
-    "packageManager": "npm"
->>>>>>> origin/Luis-Developer
+    "analytics": "c1ba9c08-d8a4-455e-91ad-140a513e3737"
   },
   "newProjectRoot": "projects",
   "projects": {

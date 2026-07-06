@@ -1,0 +1,336 @@
+<p-toast />
+<p-confirmdialog />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Inventario</h1>
+        <p class="breadcrumb">SAV-AT / Inventario</p>
+    </div>
+    @if (canInsert) {
+        <p-button label="Nuevo Producto" icon="pi pi-plus" (onClick)="openNew()" />
+    }
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon blue">📦</div>
+        <div>
+            <div class="kpi-label">Total Productos</div>
+            <div class="kpi-value">{{ totalProductos }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon red">⚠️</div>
+        <div>
+            <div class="kpi-label">Bajo Stock</div>
+            <div class="kpi-value">{{ bajoStock }}</div>
+            <div class="kpi-delta" [class.dn]="bajoStock > 0" [class.up]="bajoStock === 0">
+                {{ bajoStock === 0 ? 'Todo en orden' : 'requieren atención' }}
+            </div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon green">🛒</div>
+        <div>
+            <div class="kpi-label">Para Venta</div>
+            <div class="kpi-value">{{ soloVenta }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon gold">🔩</div>
+        <div>
+            <div class="kpi-label">Repuestos</div>
+            <div class="kpi-value">{{ soloRepuesto }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+            pInputText
+            type="text"
+            placeholder="Buscar por nombre, código de barras o categoría..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+
+    <p-select
+        [options]="tipoOpciones"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="filtroTipo()"
+        (ngModelChange)="filtroTipo.set($event)"
+        styleClass="filtro-select" />
+
+    <div class="filtro-stock" (click)="filtroStock.set(!filtroStock())">
+        <span class="stock-dot" [class.active]="filtroStock()"></span>
+        Solo bajo stock
+    </div>
+
+    <span class="total-label">{{ productosFiltrados().length }} producto(s)</span>
+</div>
+
+<!-- Estado de carga -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando inventario...</p>
+    </div>
+} @else if (productos().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">📦</span>
+        <p>Aún no hay productos registrados.</p>
+        @if (canInsert) {
+            <p-button label="Registrar primer producto" icon="pi pi-plus" (onClick)="openNew()" />
+        }
+    </div>
+} @else {
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <p-table
+            [value]="productosFiltrados()"
+            [paginator]="productosFiltrados().length > 10"
+            [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '900px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre" /></th>
+                    <th>Tipo</th>
+                    <th pSortableColumn="stock">Stock <p-sortIcon field="stock" /></th>
+                    <th>Precio Venta</th>
+                    <th>Categoría</th>
+                    <th>Proveedor</th>
+                    <th>Estado</th>
+                    @if (canEdit || canDelete) { <th class="col-actions">Acciones</th> }
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-p>
+                <tr [class.row-bajo-stock]="esBajoStock(p)">
+                    <td>
+                        <div class="producto-nombre">{{ p.nombre }}</div>
+                        @if (p.codigoBarras) {
+                            <div class="producto-codigo">{{ p.codigoBarras }}</div>
+                        }
+                    </td>
+                    <td>
+                        <span class="badge" [class.badge-blue]="p.tipoProducto === 'VENTA'" [class.badge-orange]="p.tipoProducto === 'REPUESTO'">
+                            {{ tipoLabel(p.tipoProducto) }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="stock-cell" [class.stock-bajo]="esBajoStock(p)">
+                            <span class="stock-num">{{ p.stock ?? 0 }}</span>
+                            @if (esBajoStock(p)) {
+                                <span class="stock-warn" title="Stock mínimo: {{ p.stockMinimo }}">⚠️</span>
+                            }
+                            <span class="stock-min">/ mín {{ p.stockMinimo ?? 0 }}</span>
+                        </div>
+                    </td>
+                    <td class="td-precio">
+                        {{ p.precioVenta != null ? 'S/ ' + (p.precioVenta | number:'1.2-2') : '—' }}
+                    </td>
+                    <td>{{ p.categoriaProductoNombre ?? '—' }}</td>
+                    <td>{{ p.proveedorNombre ?? '—' }}</td>
+                    <td>
+                        <span class="badge" [class.badge-green]="p.estado" [class.badge-gray]="!p.estado">
+                            {{ p.estado ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    @if (canEdit || canDelete) {
+                        <td class="col-actions">
+                            <div class="action-btns">
+                                @if (canEdit) {
+                                    <button class="btn-icon edit" title="Editar" (click)="openEdit(p)">✏️</button>
+                                }
+                                @if (canDelete) {
+                                    <button class="btn-icon del" title="Eliminar" (click)="confirmDelete(p)">🗑️</button>
+                                }
+                            </div>
+                        </td>
+                    }
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td [attr.colspan]="(canEdit || canDelete) ? 8 : 7" class="empty-row">
+                        No se encontraron productos con los filtros aplicados.
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+}
+
+<!-- Dialog: Nuevo / Editar -->
+<p-dialog
+    [header]="dialogTitle"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '580px' }"
+    [closable]="!saving()"
+    (onHide)="closeDialog()">
+
+    <form [formGroup]="form" class="dialog-form">
+
+        <!-- Nombre -->
+        <div class="form-row">
+            <label class="form-label required">Nombre del producto</label>
+            <input
+                pInputText
+                formControlName="nombre"
+                placeholder="Ej. Pantalla iPhone 13"
+                class="w-full"
+                [class.ng-invalid]="fieldError('nombre')"
+                [class.ng-dirty]="form.get('nombre')?.touched" />
+            @if (fieldError('nombre')) {
+                <small class="field-error">{{ fieldErrorMsg('nombre') }}</small>
+            }
+        </div>
+
+        <!-- Tipo y Código de barras -->
+        <div class="form-row-2">
+            <div class="form-row">
+                <label class="form-label">Tipo</label>
+                <p-select
+                    formControlName="tipoProducto"
+                    [options]="tipoFormOpciones"
+                    optionLabel="label"
+                    optionValue="value"
+                    styleClass="w-full" />
+            </div>
+            <div class="form-row">
+                <label class="form-label">Código de barras</label>
+                <input
+                    pInputText
+                    formControlName="codigoBarras"
+                    placeholder="Ej. 7501234567890"
+                    class="w-full" />
+            </div>
+        </div>
+
+        <!-- Precio Venta y Costo -->
+        <div class="form-row-2">
+            <div class="form-row">
+                <label class="form-label">Precio de venta (S/)</label>
+                <p-inputnumber
+                    formControlName="precioVenta"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    [min]="0"
+                    placeholder="0.00"
+                    styleClass="w-full"
+                    inputStyleClass="w-full" />
+            </div>
+            <div class="form-row">
+                <label class="form-label">Costo (S/)</label>
+                <p-inputnumber
+                    formControlName="costo"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    [min]="0"
+                    placeholder="0.00"
+                    styleClass="w-full"
+                    inputStyleClass="w-full" />
+            </div>
+        </div>
+
+        <!-- Stock y Stock mínimo -->
+        <div class="form-row-2">
+            <div class="form-row">
+                <label class="form-label">Stock actual</label>
+                <p-inputnumber
+                    formControlName="stock"
+                    [min]="0"
+                    [showButtons]="true"
+                    styleClass="w-full"
+                    inputStyleClass="w-full" />
+                @if (fieldError('stock')) {
+                    <small class="field-error">{{ fieldErrorMsg('stock') }}</small>
+                }
+            </div>
+            <div class="form-row">
+                <label class="form-label">Stock mínimo</label>
+                <p-inputnumber
+                    formControlName="stockMinimo"
+                    [min]="0"
+                    [showButtons]="true"
+                    styleClass="w-full"
+                    inputStyleClass="w-full" />
+            </div>
+        </div>
+
+        <!-- Categoría y Proveedor -->
+        <div class="form-row-2">
+            <div class="form-row">
+                <label class="form-label">Categoría</label>
+                <p-select
+                    formControlName="idCategoriaProducto"
+                    [options]="categoriasOpciones"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Sin categoría"
+                    styleClass="w-full"
+                    [showClear]="true" />
+            </div>
+            <div class="form-row">
+                <label class="form-label">Proveedor</label>
+                <p-select
+                    formControlName="idProveedor"
+                    [options]="proveedoresOpciones"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Sin proveedor"
+                    styleClass="w-full"
+                    [showClear]="true" />
+            </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-row">
+            <label class="form-label">Descripción</label>
+            <textarea
+                pTextarea
+                formControlName="descripcion"
+                placeholder="Descripción del producto..."
+                rows="3"
+                class="w-full">
+            </textarea>
+        </div>
+
+        <!-- Estado -->
+        <div class="form-row-inline">
+            <label class="form-label">Producto activo</label>
+            <p-toggleswitch formControlName="estado" />
+        </div>
+
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="saving()"
+            (onClick)="closeDialog()" />
+        <p-button
+            [label]="editingId() ? 'Guardar cambios' : 'Registrar producto'"
+            icon="pi pi-check"
+            [loading]="saving()"
+            (onClick)="onSave()" />
+    </ng-template>
+
+</p-dialog>
