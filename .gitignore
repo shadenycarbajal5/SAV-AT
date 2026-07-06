@@ -1,0 +1,38 @@
+### Backend (Java / Maven / Spring Boot) ###
+target/
+*.class
+*.jar
+*.war
+.mvn/wrapper/maven-wrapper.jar
+
+### IDE - Eclipse ###
+.project
+.classpath
+.settings/
+
+### IDE - IntelliJ ###
+.idea/
+*.iml
+
+### IDE - VS Code ###
+.vscode/
+
+### Frontend (Node / Angular / React) ###
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+
+### Variables de entorno y secretos ###
+.env
+.env.local
+application-secrets.properties
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db
+
+### Logs ###
+*.log
+logs/
