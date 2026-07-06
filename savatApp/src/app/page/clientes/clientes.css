@@ -1,0 +1,236 @@
+/* ── Variables heredadas del sistema ─────────────────────────────────── */
+:host {
+    --blue-primary: #1a5fd4;
+    --blue-pale: #dbeafe;
+    --white: #ffffff;
+    --gray-50: #f8faff;
+    --gray-100: #e8edf8;
+    --gray-400: #8099c4;
+    --text-dark: #0a1628;
+    --text-mid: #2d3d5a;
+    --text-light: #5e73a0;
+    --green: #2dc653;
+    --red: #e63946;
+    --radius-md: 12px;
+    --shadow-md: 0 8px 24px rgba(26,95,212,0.12);
+
+    display: block;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+/* ── Cabecera ──────────────────────────────────────────────────────────── */
+.page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.page-head-left h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.breadcrumb {
+    font-size: 12px;
+    color: var(--text-light);
+    margin: 2px 0 0;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────────────────── */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 340px;
+}
+
+.total-label {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-left: auto;
+}
+
+/* ── Estado vacío / carga ──────────────────────────────────────────────── */
+.state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 40vh;
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.empty-icon {
+    font-size: 48px;
+}
+
+.spinner {
+    width: 30px; height: 30px;
+    border: 3px solid var(--gray-100);
+    border-top-color: var(--blue-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Tabla ─────────────────────────────────────────────────────────────── */
+.table-card {
+    background: var(--white);
+    border: 1px solid var(--gray-100);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+/* Avatar inicial del cliente */
+.td-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.cliente-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a90f5, #1a3ec4);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.td-email {
+    font-size: 13px;
+    color: var(--text-mid);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.col-actions {
+    width: 96px;
+    text-align: center;
+}
+
+.action-btns {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.btn-icon {
+    background: none;
+    border: 1px solid var(--gray-100);
+    border-radius: 8px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    line-height: 1;
+}
+
+.btn-icon:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+}
+
+.btn-icon.del:hover {
+    background: rgba(230,57,70,0.08);
+    border-color: var(--red);
+}
+
+.empty-row {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.text-muted {
+    color: var(--text-light);
+}
+
+/* ── Badges ────────────────────────────────────────────────────────────── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.badge-blue {
+    background: rgba(26,95,212,0.10);
+    color: var(--blue-primary);
+}
+
+.badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* ── Formulario del Dialog ─────────────────────────────────────────────── */
+.dialog-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 0 8px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-mid);
+}
+
+.form-label.required::after {
+    content: ' *';
+    color: var(--red);
+}
+
+.field-error {
+    font-size: 12px;
+    color: var(--red);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+    .search-input { width: 100%; }
+    .toolbar { flex-wrap: wrap; }
+    .form-row-2 { grid-template-columns: 1fr; }
+    .page-head { flex-direction: column; gap: 12px; }
+}

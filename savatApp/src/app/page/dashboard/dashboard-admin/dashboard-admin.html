@@ -1,0 +1,110 @@
+<div class="page-head">
+	<h1>Dashboard</h1>
+	<p class="breadcrumb">SAV-AT Admin / Dashboard</p>
+</div>
+
+@if (loading()) {
+	<div class="state-box">
+		<span class="spinner"></span>
+		<p>Cargando información del sistema...</p>
+	</div>
+} @else if (error()) {
+	<div class="state-box error">
+		<span>⚠️</span>
+		<p>{{ error() }}</p>
+	</div>
+} @else if (data()) {
+
+	<!-- KPI -->
+	<div class="kpi-grid">
+		<div class="kpi-card">
+			<div class="kpi-icon blue">📦</div>
+			<div>
+				<div class="kpi-label">Productos en Inventario</div>
+				<div class="kpi-value">{{ data()!.totalProductos }}</div>
+				<div class="kpi-delta" [class.dn]="data()!.productosBajoStock > 0" [class.up]="data()!.productosBajoStock === 0">
+					{{ data()!.productosBajoStock }} con stock bajo
+				</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon red">🔧</div>
+			<div>
+				<div class="kpi-label">Órdenes de Reparación</div>
+				<div class="kpi-value">{{ data()!.ordenesPendientes }}</div>
+				<div class="kpi-delta up">pendientes / en proceso</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon green">💰</div>
+			<div>
+				<div class="kpi-label">Ventas del Día</div>
+				<div class="kpi-value">S/ {{ data()!.montoVentasHoy | number:'1.0-2' }}</div>
+				<div class="kpi-delta up">{{ data()!.ventasHoy }} ventas hoy</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon gold">🧾</div>
+			<div>
+				<div class="kpi-label">Ventas del Mes</div>
+				<div class="kpi-value">{{ data()!.facturasDelMes }}</div>
+				<div class="kpi-delta up">total registradas</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tablas -->
+	<div class="grid-2">
+		<div class="card">
+			<div class="card-header">
+				<div class="card-title">Últimas Ventas</div>
+			</div>
+			<div class="card-body">
+				@if (data()!.ultimasVentas.length === 0) {
+					<p class="empty-text">Aún no hay ventas registradas.</p>
+				} @else {
+					<table class="data-table">
+						<thead>
+							<tr><th>Cliente</th><th>Método</th><th>Total</th></tr>
+						</thead>
+						<tbody>
+							@for (v of data()!.ultimasVentas; track v.idVenta) {
+								<tr>
+									<td class="td-name">{{ v.clienteNombre ?? 'Sin cliente' }}</td>
+									<td>{{ v.metodoPago ?? '—' }}</td>
+									<td>S/ {{ v.total | number:'1.0-2' }}</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				}
+			</div>
+		</div>
+
+		<div class="card">
+			<div class="card-header">
+				<div class="card-title">Últimas Órdenes de Servicio</div>
+			</div>
+			<div class="card-body">
+				@if (data()!.ultimasOrdenes.length === 0) {
+					<p class="empty-text">Aún no hay órdenes registradas.</p>
+				} @else {
+					<table class="data-table">
+						<thead>
+							<tr><th>Cliente</th><th>Equipo</th><th>Estado</th></tr>
+						</thead>
+						<tbody>
+							@for (o of data()!.ultimasOrdenes; track o.idOs) {
+								<tr>
+									<td class="td-name">{{ o.clienteNombre ?? '—' }}</td>
+									<td>{{ o.equipoDescripcion ?? '—' }}</td>
+									<td><span class="badge badge-blue">{{ estadoLabel(o.estado) }}</span></td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				}
+			</div>
+		</div>
+	</div>
+}

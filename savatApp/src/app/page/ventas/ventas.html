@@ -1,0 +1,302 @@
+<p-toast />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Ventas</h1>
+        <p class="breadcrumb">SAV-AT / Ventas</p>
+    </div>
+    @if (canSell) {
+        <p-button label="Nueva Venta" icon="pi pi-plus" (onClick)="openNuevaVenta()" />
+    }
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon blue">🛒</div>
+        <div>
+            <div class="kpi-label">Total Ventas</div>
+            <div class="kpi-value">{{ totalVentas }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon green">💰</div>
+        <div>
+            <div class="kpi-label">Ingreso Total</div>
+            <div class="kpi-value">{{ formatMonto(ingresoTotal) }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon gold">📊</div>
+        <div>
+            <div class="kpi-label">Ticket Promedio</div>
+            <div class="kpi-value">{{ formatMonto(ticketPromedio) }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon red">🏷️</div>
+        <div>
+            <div class="kpi-label">Descuentos</div>
+            <div class="kpi-value">{{ formatMonto(descuentoTotal) }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input pInputText type="text"
+            placeholder="Buscar por cliente, vendedor o N° venta..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+    <p-select [options]="metodoOpciones" optionLabel="label" optionValue="value"
+        [ngModel]="filtroMetodo()" (ngModelChange)="filtroMetodo.set($event)"
+        styleClass="select-filter" />
+    <span class="total-label">{{ ventasFiltradas().length }} venta(s)</span>
+</div>
+
+<!-- Historial -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando ventas...</p>
+    </div>
+} @else if (ventas().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">🛒</span>
+        <p>Aún no hay ventas registradas.</p>
+        @if (canSell) {
+            <p-button label="Registrar primera venta" icon="pi pi-plus" (onClick)="openNuevaVenta()" />
+        }
+    </div>
+} @else {
+    <div class="table-card">
+        <p-table [value]="ventasFiltradas()"
+            [paginator]="ventasFiltradas().length > 15"
+            [rows]="15" [rowsPerPageOptions]="[15,30,50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '800px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="idVenta">#</th>
+                    <th pSortableColumn="fecha">Fecha</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th pSortableColumn="subtotal">Subtotal</th>
+                    <th>Descuento</th>
+                    <th pSortableColumn="total">Total</th>
+                    <th>Método Pago</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-v>
+                <tr>
+                    <td class="td-id">#{{ v.idVenta }}</td>
+                    <td>{{ formatFecha(v.fecha) }}</td>
+                    <td class="td-cliente">{{ v.clienteNombre ?? '—' }}</td>
+                    <td class="td-vendedor">{{ v.usuarioNombre ?? '—' }}</td>
+                    <td class="td-monto">{{ formatMonto(v.subtotal) }}</td>
+                    <td class="td-descuento">
+                        @if (v.descuento > 0) {
+                            <span class="badge badge-red">-{{ formatMonto(v.descuento) }}</span>
+                        } @else {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td class="td-total">{{ formatMonto(v.total) }}</td>
+                    <td>
+                        <p-tag [value]="metodoLabel(v.metodoPago)" [severity]="metodoBadge(v.metodoPago)" />
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="8" class="empty-row">No se encontraron ventas para los filtros aplicados.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+}
+
+<!-- ═══════════════════ DIÁLOGO NUEVA VENTA ═══════════════════ -->
+<p-dialog header="Nueva Venta"
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [modal]="true"
+    [style]="{ width: '720px' }"
+    [breakpoints]="{ '768px': '95vw', '480px': '100vw' }"
+    [draggable]="false" [resizable]="false"
+    styleClass="venta-dialog">
+
+    <div class="venta-layout">
+
+        <!-- COLUMNA IZQUIERDA: agregar productos -->
+        <div class="col-productos">
+            <h4 class="section-title">Agregar producto</h4>
+
+            <div class="add-row">
+                <div class="add-field prod-field">
+                    <label>Producto <span class="req">*</span></label>
+                    <p-select
+                        [options]="productosVenta()"
+                        optionLabel="nombre"
+                        [ngModel]="productoSelec()"
+                        (ngModelChange)="productoSelec.set($event); cantidadSelec.set(1)"
+                        placeholder="Seleccionar..."
+                        [filter]="true" filterBy="nombre"
+                        styleClass="w-full">
+                        <ng-template pTemplate="option" let-p>
+                            <div class="prod-option">
+                                <span>{{ p.nombre }}</span>
+                                <span class="prod-price">S/ {{ (p.precioVenta ?? 0).toFixed(2) }}</span>
+                                <span class="prod-stock">Stock: {{ p.stock }}</span>
+                            </div>
+                        </ng-template>
+                    </p-select>
+                </div>
+
+                <div class="add-field qty-field">
+                    <label>Cant.</label>
+                    <p-inputnumber
+                        [ngModel]="cantidadSelec()"
+                        (ngModelChange)="cantidadSelec.set($event)"
+                        [min]="1"
+                        [max]="productoSelec()?.stock ?? 999"
+                        [showButtons]="true"
+                        styleClass="w-full" />
+                </div>
+
+                <p-button icon="pi pi-cart-plus"
+                    label="Agregar"
+                    (onClick)="agregarAlCarrito()"
+                    [disabled]="!productoSelec()"
+                    styleClass="add-btn" />
+            </div>
+
+            <!-- Carrito -->
+            @if (carritoVacio) {
+                <div class="cart-empty">
+                    <span>🛒</span>
+                    <p>El carrito está vacío</p>
+                </div>
+            } @else {
+                <div class="cart-table-wrap">
+                    <table class="cart-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="col-c">Precio</th>
+                                <th class="col-c">Cant.</th>
+                                <th class="col-c">Subtotal</th>
+                                <th class="col-c"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of carrito(); track item.idProducto) {
+                                <tr>
+                                    <td class="td-prod-name">{{ item.nombre }}</td>
+                                    <td class="col-c td-price">S/ {{ item.precioUnitario.toFixed(2) }}</td>
+                                    <td class="col-c">
+                                        <p-inputnumber
+                                            [ngModel]="item.cantidad"
+                                            (ngModelChange)="setCantidad(item.idProducto, $event)"
+                                            [min]="1"
+                                            [max]="item.stockDisponible"
+                                            [showButtons]="true"
+                                            [inputStyle]="{ width: '48px', textAlign: 'center' }"
+                                            styleClass="qty-inline" />
+                                    </td>
+                                    <td class="col-c td-sub">
+                                        S/ {{ (item.precioUnitario * item.cantidad).toFixed(2) }}
+                                    </td>
+                                    <td class="col-c">
+                                        <p-button icon="pi pi-times" severity="danger" size="small"
+                                            [text]="true" (onClick)="quitarDelCarrito(item.idProducto)" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <!-- COLUMNA DERECHA: checkout -->
+        <div class="col-checkout">
+            <h4 class="section-title">Detalle de cobro</h4>
+
+            <form [formGroup]="form" class="checkout-form">
+
+                <div class="field">
+                    <label>Cliente (opcional)</label>
+                    <p-select formControlName="idCliente"
+                        [options]="clientes()"
+                        optionLabel="nombres"
+                        optionValue="idCliente"
+                        placeholder="Sin cliente"
+                        [filter]="true" filterBy="nombres"
+                        [showClear]="true"
+                        styleClass="w-full" />
+                </div>
+
+                <div class="field">
+                    <label>Método de pago <span class="req">*</span></label>
+                    <p-select formControlName="metodoPago"
+                        [options]="metodoFormOpciones"
+                        optionLabel="label" optionValue="value"
+                        styleClass="w-full" />
+                </div>
+
+                <div class="field">
+                    <label>Descuento (S/)</label>
+                    <p-inputnumber formControlName="descuento"
+                        [min]="0" [max]="subtotalCarrito"
+                        [minFractionDigits]="2" [maxFractionDigits]="2"
+                        styleClass="w-full" />
+                </div>
+
+            </form>
+
+            <p-divider />
+
+            <!-- Resumen -->
+            <div class="resumen">
+                <div class="resumen-row">
+                    <span>Subtotal</span>
+                    <span>{{ formatMonto(subtotalCarrito) }}</span>
+                </div>
+                @if (descuentoForm > 0) {
+                    <div class="resumen-row text-red">
+                        <span>Descuento</span>
+                        <span>- {{ formatMonto(descuentoForm) }}</span>
+                    </div>
+                }
+                <div class="resumen-row total-row">
+                    <span>TOTAL</span>
+                    <span>{{ formatMonto(totalCarrito) }}</span>
+                </div>
+            </div>
+
+            <p-button
+                label="Confirmar Venta"
+                icon="pi pi-check"
+                styleClass="w-full confirm-btn"
+                [loading]="saving()"
+                [disabled]="carritoVacio || saving()"
+                (onClick)="confirmarVenta()" />
+        </div>
+
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary"
+            (onClick)="dialogVisible.set(false)" [disabled]="saving()" />
+    </ng-template>
+</p-dialog>

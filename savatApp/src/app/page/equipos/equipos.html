@@ -1,0 +1,110 @@
+<p-toast />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Equipos</h1>
+        <p class="breadcrumb">SAV-AT / Equipos</p>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon blue">💻</div>
+        <div>
+            <div class="kpi-label">Total Equipos</div>
+            <div class="kpi-value">{{ totalEquipos }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon green">🏷️</div>
+        <div>
+            <div class="kpi-label">Marcas distintas</div>
+            <div class="kpi-value">{{ marcasUnicas }}</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon gold">⚠️</div>
+        <div>
+            <div class="kpi-label">Sin N° de serie</div>
+            <div class="kpi-value">{{ equiposSinSerie }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+            pInputText
+            type="text"
+            placeholder="Buscar por marca, modelo o N° de serie..."
+            class="search-input"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+    </p-iconfield>
+    <span class="total-label">{{ equiposFiltrados().length }} equipo(s)</span>
+</div>
+
+<!-- Estado de carga -->
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando equipos...</p>
+    </div>
+} @else if (equipos().length === 0) {
+    <div class="state-box">
+        <span class="empty-icon">💻</span>
+        <p>Aún no hay equipos registrados.</p>
+    </div>
+} @else {
+    <div class="table-card">
+        <p-table
+            [value]="equiposFiltrados()"
+            [paginator]="equiposFiltrados().length > 15"
+            [rows]="15"
+            [rowsPerPageOptions]="[15, 30, 50]"
+            styleClass="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '600px' }"
+            sortMode="single">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="idEquipo">#</th>
+                    <th pSortableColumn="marca">Marca</th>
+                    <th pSortableColumn="modelo">Modelo</th>
+                    <th>N° de Serie</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-e>
+                <tr>
+                    <td class="td-id">#{{ e.idEquipo }}</td>
+                    <td class="td-marca">
+                        <span class="marca-icon">{{ marcaIcon(e.marca) }}</span>
+                        {{ e.marca ?? '—' }}
+                    </td>
+                    <td>{{ e.modelo ?? '—' }}</td>
+                    <td>
+                        @if (e.numeroSerie) {
+                            <code class="serie-code">{{ e.numeroSerie }}</code>
+                        } @else {
+                            <span class="text-muted">Sin serie</span>
+                        }
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="4" class="empty-row">
+                        No se encontraron equipos para "{{ searchQuery() }}"
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+}

@@ -1,0 +1,417 @@
+<p-toast />
+
+<!-- Cabecera -->
+<div class="page-head">
+    <div class="page-head-left">
+        <h1>Reportes</h1>
+        <p class="breadcrumb">SAV-AT / Reportes</p>
+    </div>
+    <p-button icon="pi pi-refresh" severity="secondary" [outlined]="true"
+        pTooltip="Actualizar datos" tooltipPosition="left"
+        (onClick)="loadAll()" [loading]="loading()" />
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+    <button class="tab-btn" [class.active]="tabActivo() === 'ventas'"       (click)="tabActivo.set('ventas')">🛒 Ventas</button>
+    <button class="tab-btn" [class.active]="tabActivo() === 'reparaciones'" (click)="tabActivo.set('reparaciones')">🔧 Reparaciones</button>
+    <button class="tab-btn" [class.active]="tabActivo() === 'inventario'"   (click)="tabActivo.set('inventario')">📦 Inventario</button>
+    <button class="tab-btn" [class.active]="tabActivo() === 'cotizaciones'" (click)="tabActivo.set('cotizaciones')">📝 Cotizaciones</button>
+</div>
+
+@if (loading()) {
+    <div class="state-box">
+        <span class="spinner"></span>
+        <p>Cargando datos...</p>
+    </div>
+} @else {
+
+<!-- ══════════════════ TAB: VENTAS ══════════════════ -->
+@if (tabActivo() === 'ventas') {
+    <div class="tab-content">
+
+        <!-- Filtro período -->
+        <div class="filter-row">
+            <label class="filter-label">Período:</label>
+            <p-select [options]="periodoOpciones" optionLabel="label" optionValue="value"
+                [ngModel]="periodoVentas()" (ngModelChange)="periodoVentas.set($event)"
+                styleClass="period-select" />
+            <span class="filter-result">{{ ventasFiltradas().length }} venta(s) en el período</span>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon blue">💰</div>
+                <div>
+                    <div class="kpi-label">Ingreso neto</div>
+                    <div class="kpi-value">{{ formatMonto(ingresoFiltrado) }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon green">🛒</div>
+                <div>
+                    <div class="kpi-label">N° Ventas</div>
+                    <div class="kpi-value">{{ ventasFiltradas().length }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon gold">📊</div>
+                <div>
+                    <div class="kpi-label">Ticket promedio</div>
+                    <div class="kpi-value">{{ formatMonto(ticketPromedio) }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon red">🏷️</div>
+                <div>
+                    <div class="kpi-label">Descuentos</div>
+                    <div class="kpi-value">{{ formatMonto(descuentoFiltrado) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+
+            <!-- Ventas últimos 7 días -->
+            <div class="chart-card wide">
+                <h3 class="chart-title">Ventas — últimos 7 días</h3>
+                @if (ventasPorDia().every(d => d.value === 0)) {
+                    <div class="chart-empty">Sin datos en este período</div>
+                } @else {
+                    <div class="bar-chart">
+                        @for (bar of ventasPorDia(); track bar.label) {
+                            <div class="bar-row">
+                                <span class="bar-label">{{ bar.label }}</span>
+                                <div class="bar-track">
+                                    <div class="bar-fill"
+                                        [style.width.%]="bar.value > 0 ? (bar.value / barMaxValue(ventasPorDia())) * 100 : 0"
+                                        [style.background]="bar.color">
+                                    </div>
+                                </div>
+                                <span class="bar-value">{{ formatMonto(bar.value) }}</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Por método de pago -->
+            <div class="chart-card">
+                <h3 class="chart-title">Por método de pago</h3>
+                @if (ventasPorMetodo().length === 0) {
+                    <div class="chart-empty">Sin datos</div>
+                } @else {
+                    <div class="donut-wrap">
+                        <svg viewBox="0 0 160 160" class="donut-svg">
+                            @for (seg of donutSegments(ventasPorMetodo()); track seg.label) {
+                                <path [attr.d]="seg.d" [attr.fill]="seg.color" stroke="white" stroke-width="2">
+                                    <title>{{ seg.label }}: {{ formatMonto(seg.value) }}</title>
+                                </path>
+                            }
+                        </svg>
+                        <div class="donut-legend">
+                            @for (item of ventasPorMetodo(); track item.label) {
+                                <div class="legend-item">
+                                    <span class="legend-dot" [style.background]="item.color"></span>
+                                    <span class="legend-text">{{ item.label }}</span>
+                                    <span class="legend-val">{{ formatMonto(item.value) }}</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+}
+
+<!-- ══════════════════ TAB: REPARACIONES ══════════════════ -->
+@if (tabActivo() === 'reparaciones') {
+    <div class="tab-content">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon blue">🔧</div>
+                <div>
+                    <div class="kpi-label">Total órdenes</div>
+                    <div class="kpi-value">{{ totalOrdenes }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon gold">⚙️</div>
+                <div>
+                    <div class="kpi-label">En proceso</div>
+                    <div class="kpi-value">{{ ordenesActivas }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon green">📦</div>
+                <div>
+                    <div class="kpi-label">Entregadas</div>
+                    <div class="kpi-value">{{ ordenesEntregadas }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon red">❌</div>
+                <div>
+                    <div class="kpi-label">Canceladas</div>
+                    <div class="kpi-value">{{ ordenesCanceladas }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+
+            <!-- Por estado (dona) -->
+            <div class="chart-card">
+                <h3 class="chart-title">Órdenes por estado</h3>
+                @if (ordenesPorEstado().length === 0) {
+                    <div class="chart-empty">Sin órdenes registradas</div>
+                } @else {
+                    <div class="donut-wrap">
+                        <svg viewBox="0 0 160 160" class="donut-svg">
+                            @for (seg of donutSegments(ordenesPorEstado()); track seg.label) {
+                                <path [attr.d]="seg.d" [attr.fill]="seg.color" stroke="white" stroke-width="2">
+                                    <title>{{ seg.label }}: {{ seg.value }}</title>
+                                </path>
+                            }
+                        </svg>
+                        <div class="donut-legend">
+                            @for (item of ordenesPorEstado(); track item.label) {
+                                <div class="legend-item">
+                                    <span class="legend-dot" [style.background]="item.color"></span>
+                                    <span class="legend-text">{{ item.label }}</span>
+                                    <span class="legend-val">{{ item.value }}</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Técnicos más activos -->
+            <div class="chart-card wide">
+                <h3 class="chart-title">Técnicos — órdenes asignadas</h3>
+                @if (tecnicosMasActivos().length === 0) {
+                    <div class="chart-empty">Sin datos</div>
+                } @else {
+                    <div class="bar-chart">
+                        @for (t of tecnicosMasActivos(); track t.nombre) {
+                            <div class="bar-row">
+                                <span class="bar-label">{{ t.nombre }}</span>
+                                <div class="bar-track">
+                                    <div class="bar-fill"
+                                        [style.width.%]="(t.total / tecnicosMasActivos()[0].total) * 100"
+                                        style="background: #1a5fd4">
+                                    </div>
+                                </div>
+                                <span class="bar-value">{{ t.total }}</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+}
+
+<!-- ══════════════════ TAB: INVENTARIO ══════════════════ -->
+@if (tabActivo() === 'inventario') {
+    <div class="tab-content">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon blue">📦</div>
+                <div>
+                    <div class="kpi-label">Total productos</div>
+                    <div class="kpi-value">{{ totalProductos }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon gold">⚠️</div>
+                <div>
+                    <div class="kpi-label">Stock bajo</div>
+                    <div class="kpi-value">{{ productosStockBajo.length }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon red">🚫</div>
+                <div>
+                    <div class="kpi-label">Agotados</div>
+                    <div class="kpi-value">{{ productosAgotados.length }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon green">💵</div>
+                <div>
+                    <div class="kpi-label">Valor inventario</div>
+                    <div class="kpi-value">{{ formatMonto(valorInventario) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+
+            <!-- Por categoría -->
+            <div class="chart-card">
+                <h3 class="chart-title">Productos por categoría</h3>
+                @if (productosPorCategoria().length === 0) {
+                    <div class="chart-empty">Sin datos</div>
+                } @else {
+                    <div class="bar-chart">
+                        @for (bar of productosPorCategoria(); track bar.label) {
+                            <div class="bar-row">
+                                <span class="bar-label">{{ bar.label }}</span>
+                                <div class="bar-track">
+                                    <div class="bar-fill"
+                                        [style.width.%]="(bar.value / barMaxValue(productosPorCategoria())) * 100"
+                                        [style.background]="bar.color">
+                                    </div>
+                                </div>
+                                <span class="bar-value">{{ bar.value }}</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Productos con stock crítico -->
+            <div class="chart-card wide">
+                <h3 class="chart-title">⚠️ Productos con stock crítico o agotado</h3>
+                @if (productosStockBajo.length === 0 && productosAgotados.length === 0) {
+                    <div class="chart-empty chart-ok">✅ Todos los productos tienen stock suficiente</div>
+                } @else {
+                    <div class="stock-table-wrap">
+                        <table class="stock-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th class="tc">Stock actual</th>
+                                    <th class="tc">Stock mínimo</th>
+                                    <th class="tc">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (p of productosStockBajo; track p.idProducto) {
+                                    <tr [class.row-agotado]="(p.stock ?? 0) === 0">
+                                        <td class="td-nombre">{{ p.nombre }}</td>
+                                        <td>{{ p.categoriaProductoNombre ?? '—' }}</td>
+                                        <td class="tc td-stock-val">{{ p.stock ?? 0 }}</td>
+                                        <td class="tc">{{ p.stockMinimo ?? 0 }}</td>
+                                        <td class="tc">
+                                            @if ((p.stock ?? 0) === 0) {
+                                                <span class="badge-agotado">Agotado</span>
+                                            } @else {
+                                                <span class="badge-bajo">Stock bajo</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+}
+
+<!-- ══════════════════ TAB: COTIZACIONES ══════════════════ -->
+@if (tabActivo() === 'cotizaciones') {
+    <div class="tab-content">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon blue">📝</div>
+                <div>
+                    <div class="kpi-label">Total</div>
+                    <div class="kpi-value">{{ totalCotizaciones }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon gold">⏳</div>
+                <div>
+                    <div class="kpi-label">Pendientes</div>
+                    <div class="kpi-value">{{ cotizacionesPendientes }}</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon green">✅</div>
+                <div>
+                    <div class="kpi-label">Tasa aprobación</div>
+                    <div class="kpi-value">{{ tasaConversion }}%</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon purple">💵</div>
+                <div>
+                    <div class="kpi-label">Total cotizado</div>
+                    <div class="kpi-value">{{ formatMonto(totalCotizado) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+
+            <!-- Dona por estado -->
+            <div class="chart-card">
+                <h3 class="chart-title">Cotizaciones por estado</h3>
+                @if (cotizacionesPorEstado().length === 0) {
+                    <div class="chart-empty">Sin cotizaciones registradas</div>
+                } @else {
+                    <div class="donut-wrap">
+                        <svg viewBox="0 0 160 160" class="donut-svg">
+                            @for (seg of donutSegments(cotizacionesPorEstado()); track seg.label) {
+                                <path [attr.d]="seg.d" [attr.fill]="seg.color" stroke="white" stroke-width="2">
+                                    <title>{{ seg.label }}: {{ seg.value }}</title>
+                                </path>
+                            }
+                        </svg>
+                        <div class="donut-legend">
+                            @for (item of cotizacionesPorEstado(); track item.label) {
+                                <div class="legend-item">
+                                    <span class="legend-dot" [style.background]="item.color"></span>
+                                    <span class="legend-text">{{ item.label }}</span>
+                                    <span class="legend-val">{{ item.value }}</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Embudo conversión -->
+            <div class="chart-card wide">
+                <h3 class="chart-title">Embudo de conversión</h3>
+                <div class="funnel">
+                    @for (item of cotizacionesPorEstado(); track item.label) {
+                        <div class="funnel-row">
+                            <div class="funnel-label">{{ item.label }}</div>
+                            <div class="funnel-bar-wrap">
+                                <div class="funnel-bar"
+                                    [style.width.%]="totalCotizaciones > 0 ? (item.value / totalCotizaciones) * 100 : 0"
+                                    [style.background]="item.color">
+                                    <span class="funnel-pct">
+                                        {{ totalCotizaciones > 0 ? ((item.value / totalCotizaciones) * 100).toFixed(0) : 0 }}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="funnel-count">{{ item.value }}</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+} <!-- end @if loading -->

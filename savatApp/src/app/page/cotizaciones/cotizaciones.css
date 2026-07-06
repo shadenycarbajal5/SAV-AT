@@ -1,0 +1,63 @@
+:host {
+    --blue-primary: #1a5fd4;
+    --white: #ffffff;
+    --gray-50: #f8faff;
+    --gray-100: #e8edf8;
+    --gray-400: #8099c4;
+    --text-dark: #0a1628;
+    --text-mid: #2d3d5a;
+    --text-light: #5e73a0;
+    --red: #e63946;
+    --radius-md: 12px;
+    --shadow-md: 0 8px 24px rgba(26,95,212,0.12);
+    display: block;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.page-head-left h1 { font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 700; color: var(--text-dark); margin: 0; }
+.breadcrumb { font-size: 12px; color: var(--text-light); margin: 2px 0 0; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+    background: var(--white); border: 1px solid var(--gray-100);
+    border-radius: var(--radius-md); padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-md);
+}
+.kpi-icon { width: 44px; height: 44px; border-radius: 10px; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-icon.blue   { background: #dbeafe; }
+.kpi-icon.gold   { background: #fef9c3; }
+.kpi-icon.green  { background: #dcfce7; }
+.kpi-icon.purple { background: #ede9fe; }
+.kpi-label { font-size: 12px; color: var(--text-light); margin-bottom: 2px; }
+.kpi-value { font-size: 22px; font-weight: 700; color: var(--text-dark); }
+
+.toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.search-input { width: 300px; }
+.select-filter { min-width: 160px; }
+.total-label { font-size: 13px; color: var(--text-light); margin-left: auto; }
+
+.state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; min-height: 40vh; color: var(--text-light); font-size: 14px; }
+.empty-icon { font-size: 48px; }
+.spinner { width: 30px; height: 30px; border: 3px solid var(--gray-100); border-top-color: var(--blue-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.table-card { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-md); }
+
+.td-id { font-size: 13px; color: var(--text-light); font-weight: 600; }
+.td-total { font-weight: 700; color: var(--blue-primary); }
+.td-vencida { color: var(--red); font-weight: 600; }
+
+.row-vencida { background: rgba(230,57,70,0.04); }
+
+.badge-vencida {
+    display: inline-block; margin-left: 6px;
+    background: rgba(230,57,70,0.12); color: var(--red);
+    border-radius: 100px; font-size: 10px; font-weight: 700;
+    padding: 2px 7px; letter-spacing: 0.04em;
+}
+
+.empty-row { text-align: center; padding: 32px; color: var(--text-light); font-size: 14px; }
+
+@media (max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } .search-input { width: 100%; } }

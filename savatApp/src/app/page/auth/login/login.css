@@ -1,0 +1,167 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+:host {
+    --blue-primary: #1a5fd4;
+    --blue-mid: #2171f5;
+    --blue-light: #4a90f5;
+    --navy: #060f2e;
+    --white: #ffffff;
+    --gray-400: #8099c4;
+    --gray-600: #4a5e82;
+    --radius-sm: 8px;
+    --radius-lg: 18px;
+    --shadow-lg: 0 20px 50px rgba(26,95,212,0.18);
+}
+
+.login-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+.login-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(26,95,212,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,95,212,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+}
+
+.login-glow {
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(26,95,212,0.2) 0%, transparent 65%);
+    pointer-events: none;
+}
+
+.login-card {
+    position: relative;
+    z-index: 2;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(26,95,212,0.2);
+    border-radius: var(--radius-lg);
+    padding: 44px 40px;
+    width: 100%;
+    max-width: 380px;
+    backdrop-filter: blur(20px);
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.login-logo .brand {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+}
+
+.login-logo .sub {
+    font-size: 11px;
+    color: var(--blue-light);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.login-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.login-sub {
+    font-size: 13px;
+    color: var(--gray-400);
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+}
+
+.field-error {
+    display: block;
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: #ff8080;
+}
+
+.login-btn {
+    width: 100%;
+    margin-top: 8px;
+    justify-content: center;
+    height: 44px;
+    font-size: 15px;
+}
+
+/* ===== Overrides PrimeNG para fondo oscuro ===== */
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-password input {
+    width: 100%;
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(26,95,212,0.25) !important;
+    color: var(--white) !important;
+}
+
+:host ::ng-deep .p-inputtext::placeholder,
+:host ::ng-deep .p-password input::placeholder {
+    color: var(--gray-600) !important;
+}
+
+:host ::ng-deep .p-inputtext:enabled:focus,
+:host ::ng-deep .p-password input:enabled:focus {
+    border-color: var(--blue-light) !important;
+    box-shadow: 0 0 0 1px var(--blue-light) !important;
+}
+
+:host ::ng-deep .p-password {
+    width: 100%;
+    display: block;
+}
+
+:host ::ng-deep .login-btn.p-button {
+    background: linear-gradient(135deg, var(--blue-primary), var(--blue-mid)) !important;
+    border: none !important;
+    box-shadow: 0 3px 12px rgba(33,113,245,0.3);
+}
+
+:host ::ng-deep .login-btn.p-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 18px rgba(33,113,245,0.4);
+}

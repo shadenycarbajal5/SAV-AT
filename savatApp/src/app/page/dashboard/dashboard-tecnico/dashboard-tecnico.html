@@ -1,0 +1,79 @@
+<div class="page-head">
+	<h1>Dashboard</h1>
+	<p class="breadcrumb">SAV-AT Técnico / Dashboard</p>
+</div>
+
+@if (loading()) {
+	<div class="state-box">
+		<span class="spinner"></span>
+		<p>Cargando órdenes de servicio...</p>
+	</div>
+} @else if (error()) {
+	<div class="state-box error">
+		<span>⚠️</span>
+		<p>{{ error() }}</p>
+	</div>
+} @else if (data()) {
+
+	<div class="kpi-grid">
+		<div class="kpi-card">
+			<div class="kpi-icon red">🔧</div>
+			<div>
+				<div class="kpi-label">Órdenes Pendientes</div>
+				<div class="kpi-value">{{ data()!.ordenesPendientes }}</div>
+				<div class="kpi-delta dn">por atender</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon blue">⚙️</div>
+			<div>
+				<div class="kpi-label">En Reparación</div>
+				<div class="kpi-value">{{ data()!.ordenesEnProceso }}</div>
+				<div class="kpi-delta up">en proceso</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon green">✅</div>
+			<div>
+				<div class="kpi-label">Listas para Entregar</div>
+				<div class="kpi-value">{{ data()!.ordenesListas }}</div>
+				<div class="kpi-delta up">finalizadas</div>
+			</div>
+		</div>
+		<div class="kpi-card">
+			<div class="kpi-icon gold">💻</div>
+			<div>
+				<div class="kpi-label">Equipos Registrados</div>
+				<div class="kpi-value">{{ data()!.equiposRegistrados }}</div>
+				<div class="kpi-delta up">en el sistema</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card-header">
+			<div class="card-title">Últimas Órdenes de Servicio</div>
+		</div>
+		<div class="card-body">
+			@if (data()!.ultimasOrdenes.length === 0) {
+				<p class="empty-text">Aún no hay órdenes registradas.</p>
+			} @else {
+				<table class="data-table">
+					<thead>
+						<tr><th>Cliente</th><th>Equipo</th><th>Problema</th><th>Estado</th></tr>
+					</thead>
+					<tbody>
+						@for (o of data()!.ultimasOrdenes; track o.idOs) {
+							<tr>
+								<td class="td-name">{{ o.clienteNombre ?? '—' }}</td>
+								<td>{{ o.equipoDescripcion ?? '—' }}</td>
+								<td>{{ o.descripcionProblema ?? '—' }}</td>
+								<td><span class="badge" [ngClass]="estadoBadgeClass(o.estado)">{{ estadoLabel(o.estado) }}</span></td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</div>
+	</div>
+}
