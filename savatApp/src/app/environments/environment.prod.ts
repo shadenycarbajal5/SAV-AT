@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://savat-backend.onrender.com'
+  urlBase: 'https://savat-backend.onrender.com' // <-- Cambiamos "apiUrl" por "urlBase"
 };
