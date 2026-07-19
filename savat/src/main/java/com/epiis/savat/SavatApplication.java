@@ -14,7 +14,7 @@ public class SavatApplication {
 	}
 
 	@Bean
-	public CommandLineRunner dataSeeder(JdbcTemplate jdbcTemplate) {
+	public CommandLineRunner dataSeederNuevo(JdbcTemplate jdbcTemplate) {
 		return args -> {
 			try {
 				System.out.println("⏳ Insertando roles y usuarios iniciales en PostgreSQL...");
