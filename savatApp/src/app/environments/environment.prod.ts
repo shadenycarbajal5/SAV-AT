@@ -1,4 +1,4 @@
 export const environment = {
-    production: true,
-    urlBase: 'https://savat-api.onrender.com'
+  production: true,
+  apiUrl: 'https://savat-backend.onrender.com' // <-- PON ESTA URL
 };
