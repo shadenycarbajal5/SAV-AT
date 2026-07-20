@@ -50,13 +50,13 @@ public class BusinessVenta {
                         v.getMetodoPago() != null ? v.getMetodoPago().name() : null,
                         v.getCliente() != null ? v.getCliente().getIdCliente() : null,
                         v.getCliente() != null ? v.getCliente().getNombres() : null,
+                        v.getCliente() != null ? v.getCliente().getDniRuc() : null, // NUEVO: Extraer DniRuc
                         v.getUsuario() != null ? v.getUsuario().getIdUsuario() : null,
                         v.getUsuario() != null ? v.getUsuario().getNombres() : null))
                 .toList();
         response.success();
         return response;
     }
-
     @Transactional
     public ResponseVentaInsert insert(RequestVenta request) {
         ResponseVentaInsert response = new ResponseVentaInsert();
