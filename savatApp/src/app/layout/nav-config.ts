@@ -41,7 +41,8 @@ const NAV_VENDEDOR: NavSection[] = [
             { label: 'Dashboard',      icon: '🏠', route: '/dashboard/vendedor' },
             { label: 'Ventas',         icon: '🛒', route: '/ventas' },
             { label: 'Cotizaciones',   icon: '📝', route: '/cotizaciones' },
-            { label: 'Clientes',       icon: '👥', route: '/clientes' }
+            { label: 'Clientes',       icon: '👥', route: '/clientes' },
+            { label: 'Inventario',     icon: '📦', route: '/inventario' }
         ]
     }
 ];
@@ -53,7 +54,6 @@ const NAV_TECNICO: NavSection[] = [
             { label: 'Dashboard',      icon: '🏠', route: '/dashboard/tecnico' },
             { label: 'Reparaciones',   icon: '🔧', route: '/reparaciones' },
             { label: 'Equipos',        icon: '💻', route: '/equipos' },
-            { label: 'Inventario',     icon: '📦', route: '/inventario' }
         ]
     }
 ];
