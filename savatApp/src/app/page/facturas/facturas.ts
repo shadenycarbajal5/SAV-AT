@@ -34,6 +34,7 @@ export interface VentaItem {
     metodoPago:   string | null;
     idCliente:    number | null;
     clienteNombre: string | null;
+    clienteDniRuc: string | null; // AÑADIDO: Nuevo campo desde el Dto mapeado del backend
     idUsuario:    number | null;
     usuarioNombre: string | null;
 }
@@ -87,6 +88,7 @@ export class Facturas implements OnInit {
             const matchQ = !q ||
                 String(v.idVenta).includes(q) ||
                 (v.clienteNombre ?? '').toLowerCase().includes(q) ||
+                (v.clienteDniRuc ?? '').includes(q) || // AÑADIDO: También permite buscar por DNI/RUC
                 (v.usuarioNombre ?? '').toLowerCase().includes(q);
             return matchQ;
         });
@@ -126,8 +128,6 @@ export class Facturas implements OnInit {
         this.previewVisible.set(true);
         this.loadingDetalle.set(false);
 
-        // Fila resumen basada en los totales de la venta
-        // (cuando el backend exponga GET /venta/detalle/{id} se puede conectar aquí)
         this.previewDetalle.set([{
             idDetalle:      venta.idVenta,
             nombreProducto: 'Productos / Servicios vendidos',
@@ -239,6 +239,10 @@ export class Facturas implements OnInit {
         <span class="info-val">${venta.clienteNombre ?? 'CONSUMIDOR FINAL'}</span>
       </div>
       <div class="info-row">
+        <span class="info-label">${tipo === 'FACTURA' ? 'RUC' : 'DNI/Doc'}:</span>
+        <span class="info-val">${venta.clienteDniRuc ?? '—'}</span>
+      </div>
+      <div class="info-row">
         <span class="info-label">Fecha Venta:</span>
         <span class="info-val">${fecha}</span>
       </div>
@@ -328,6 +332,12 @@ export class Facturas implements OnInit {
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
+    tipoComprobanteRecomendado(dniRuc: string | null): 'BOLETA' | 'FACTURA' {
+        if (!dniRuc) return 'BOLETA';
+        const doc = dniRuc.trim();
+        return doc.length === 11 ? 'FACTURA' : 'BOLETA';
+    }
+
     formatFecha(fecha: string): string {
         if (!fecha) return '—';
         return new Date(fecha).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
