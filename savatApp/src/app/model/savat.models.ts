@@ -24,6 +24,7 @@ export interface Venta {
     metodoPago: string | null;
     idCliente: number | null;
     clienteNombre: string | null;
+    clienteDniRuc: string | null; // NUEVO
     idUsuario: number | null;
     usuarioNombre: string | null;
 }
