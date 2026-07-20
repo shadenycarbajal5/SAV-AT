@@ -1,10 +1,14 @@
 <p-toast />
+<p-confirmDialog [style]="{width: '450px'}" />
 
 <!-- Cabecera -->
 <div class="page-head">
     <div class="page-head-left">
         <h1>Cotizaciones</h1>
         <p class="breadcrumb">SAV-AT / Cotizaciones</p>
+    </div>
+    <div class="page-head-right">
+        <p-button label="Nueva Cotización" icon="pi pi-plus" (onClick)="openCreateModal()" />
     </div>
 </div>
 
@@ -92,6 +96,7 @@
                     <th>Cliente</th>
                     <th pSortableColumn="total">Total</th>
                     <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
             </ng-template>
 
@@ -112,12 +117,18 @@
                             [value]="estadoLabel(c.estado)"
                             [severity]="estadoBadge(c.estado)" />
                     </td>
+                    <td>
+                        @if (c.estado === 'PENDIENTE') {
+                            <p-button icon="pi pi-ellipsis-v" [text]="true" [rounded]="true" (onClick)="menu.toggle($event)" />
+                            <p-menu #menu [model]="getAcciones(c)" [popup]="true" appendTo="body" />
+                        }
+                    </td>
                 </tr>
             </ng-template>
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="6" class="empty-row">
+                    <td colspan="7" class="empty-row">
                         No se encontraron cotizaciones para "{{ searchQuery() }}"
                     </td>
                 </tr>
@@ -126,3 +137,85 @@
         </p-table>
     </div>
 }
+
+<!-- Modal Nueva Cotización -->
+<p-dialog 
+    header="Nueva Cotización" 
+    [visible]="showCreateModal()" 
+    (visibleChange)="showCreateModal.set($event)" 
+    [modal]="true" 
+    [style]="{width: '800px', 'max-width': '95vw'}" 
+    [draggable]="false" 
+    [resizable]="false">
+    
+    <div class="form-grid">
+        <div class="form-field">
+            <label>Cliente</label>
+            <p-select 
+                [options]="clientes()" 
+                optionLabel="nombres" 
+                optionValue="idCliente" 
+                [(ngModel)]="nuevaCotizacion.idCliente" 
+                placeholder="Seleccione un cliente" 
+                [filter]="true" 
+                filterBy="nombres" 
+                styleClass="w-full" />
+        </div>
+        <div class="form-field">
+            <label>Fecha de Vencimiento (Opcional)</label>
+            <input pInputText type="date" [(ngModel)]="nuevaCotizacion.fechaVencimiento" class="w-full" />
+        </div>
+    </div>
+
+    <div class="detalle-section mt-4">
+        <h3>Detalle de Productos</h3>
+        
+        <div class="detalle-header">
+            <div class="col-prod">Producto</div>
+            <div class="col-cant">Cantidad</div>
+            <div class="col-precio">P. Unitario</div>
+            <div class="col-subtotal">Subtotal</div>
+            <div class="col-act"></div>
+        </div>
+
+        @for (item of nuevaCotizacion.detalle; track $index) {
+            <div class="detalle-row">
+                <div class="col-prod">
+                    <p-select 
+                        [options]="productos()" 
+                        optionLabel="nombre" 
+                        [(ngModel)]="item.producto" 
+                        placeholder="Buscar producto" 
+                        [filter]="true" 
+                        filterBy="nombre" 
+                        styleClass="w-full" />
+                </div>
+                <div class="col-cant">
+                    <input pInputText type="number" min="1" [(ngModel)]="item.cantidad" class="w-full text-center" />
+                </div>
+                <div class="col-precio">
+                    {{ formatMonto(item.producto?.precioVenta || 0) }}
+                </div>
+                <div class="col-subtotal font-bold text-primary">
+                    {{ formatMonto((item.producto?.precioVenta || 0) * (item.cantidad || 0)) }}
+                </div>
+                <div class="col-act">
+                    <p-button icon="pi pi-trash" [text]="true" severity="danger" (onClick)="removerProductoDetalle($index)" />
+                </div>
+            </div>
+        }
+
+        <div class="detalle-actions mt-3">
+            <p-button label="Agregar Producto" icon="pi pi-plus" [text]="true" size="small" (onClick)="agregarProductoDetalle()" />
+        </div>
+        
+        <div class="resumen-total">
+            Total Estimado: <span>{{ formatMonto(totalNuevaCotizacion) }}</span>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="showCreateModal.set(false)" />
+        <p-button label="Guardar Cotización" icon="pi pi-save" (onClick)="saveCotizacion()" [loading]="saving()" />
+    </ng-template>
+</p-dialog>
