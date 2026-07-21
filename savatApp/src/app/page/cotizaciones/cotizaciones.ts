@@ -205,7 +205,8 @@ export class Cotizaciones implements OnInit {
         this.saving.set(true);
         try {
             const request = {
-                idCliente: this.nuevaCotizacion.idCliente,
+                // Aquí usamos "as number" para forzar el tipado estricto
+                idCliente: this.nuevaCotizacion.idCliente as number,
                 fechaVencimiento: this.nuevaCotizacion.fechaVencimiento || null,
                 detalle: itemsValidos.map(d => ({
                     idProducto: d.producto!.idProducto,
@@ -213,7 +214,7 @@ export class Cotizaciones implements OnInit {
                 }))
             };
 
-            const resp: any = await this.api.invoke(apicotizacioninsert, request);
+            const resp: any = await this.api.invoke(apicotizacioninsert, { body: request });
             if (resp.listMessage && resp.listMessage.length > 0) {
                  this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage[0] });
             } else {
@@ -230,7 +231,7 @@ export class Cotizaciones implements OnInit {
 
     async cambiarEstado(id: number, nuevoEstado: string) {
         try {
-            const resp: any = await this.api.invoke(apicotizacionestado, { estado: nuevoEstado }, { id });
+            const resp: any = await this.api.invoke(apicotizacionestado, { id: id, body: { estado: nuevoEstado } });
             if (resp.listMessage && resp.listMessage.length > 0) {
                  this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage[0] });
             } else {
@@ -249,7 +250,7 @@ export class Cotizaciones implements OnInit {
             icon: 'pi pi-exclamation-triangle',
             accept: async () => {
                 try {
-                    const resp: any = await this.api.invoke(apicotizaciondelete, undefined, { id });
+                    const resp: any = await this.api.invoke(apicotizaciondelete, { id: id });
                     if (resp.listMessage && resp.listMessage.length > 0) {
                         this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage[0] });
                     } else {
