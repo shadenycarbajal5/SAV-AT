@@ -215,10 +215,10 @@ export class Cotizaciones implements OnInit {
             };
 
             const resp: any = await this.api.invoke(apicotizacioninsert, { body: request });
-            if (resp.listMessage && resp.listMessage.length > 0) {
-                 this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage[0] });
+            if (resp.type === 'error') {
+                 this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage && resp.listMessage.length > 0 ? resp.listMessage[0] : 'Error desconocido' });
             } else {
-                 this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cotización creada correctamente.' });
+                 this.messageService.add({ severity: 'success', summary: 'Éxito', detail: resp.listMessage && resp.listMessage.length > 0 ? resp.listMessage[0] : 'Cotización creada correctamente.' });
                  this.showCreateModal.set(false);
                  await this.loadCotizaciones();
             }
@@ -232,10 +232,10 @@ export class Cotizaciones implements OnInit {
     async cambiarEstado(id: number, nuevoEstado: string) {
         try {
             const resp: any = await this.api.invoke(apicotizacionestado, { id: id, body: { estado: nuevoEstado } });
-            if (resp.listMessage && resp.listMessage.length > 0) {
-                 this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage[0] });
+            if (resp.type === 'error') {
+                 this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage && resp.listMessage.length > 0 ? resp.listMessage[0] : 'Error desconocido' });
             } else {
-                 this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Estado actualizado.' });
+                 this.messageService.add({ severity: 'success', summary: 'Éxito', detail: resp.listMessage && resp.listMessage.length > 0 ? resp.listMessage[0] : 'Estado actualizado.' });
                  await this.loadCotizaciones();
             }
         } catch {
@@ -251,10 +251,10 @@ export class Cotizaciones implements OnInit {
             accept: async () => {
                 try {
                     const resp: any = await this.api.invoke(apicotizaciondelete, { id: id });
-                    if (resp.listMessage && resp.listMessage.length > 0) {
-                        this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage[0] });
+                    if (resp.type === 'error') {
+                        this.messageService.add({ severity: 'error', summary: 'Error', detail: resp.listMessage && resp.listMessage.length > 0 ? resp.listMessage[0] : 'Error desconocido' });
                     } else {
-                        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cotización eliminada.' });
+                        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: resp.listMessage && resp.listMessage.length > 0 ? resp.listMessage[0] : 'Cotización eliminada.' });
                         await this.loadCotizaciones();
                     }
                 } catch {
