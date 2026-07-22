@@ -21,6 +21,7 @@ const NAV_ADMIN: NavSection[] = [
             { label: 'Inventario',    icon: '📦', route: '/inventario' },
             { label: 'Reparaciones',  icon: '🔧', route: '/reparaciones' },
             { label: 'Ventas',        icon: '🛒', route: '/ventas' },
+            { label: 'Cotizaciones',  icon: '📝', route: '/cotizaciones' },
             { label: 'Facturas',      icon: '🧾', route: '/facturas' }
         ]
     },
